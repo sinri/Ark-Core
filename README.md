@@ -2,7 +2,7 @@
 The core components of Ark 2.
 
 WebHook Secret:
-`json {"repository":{"url":"https://packagist.org/packages/sinri/ark-core"}}`
+`{"repository":{"url":"https://packagist.org/packages/sinri/ark-core"}}`
 
 ## ArkHelper
 
