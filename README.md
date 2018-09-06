@@ -1,6 +1,9 @@
 # Ark-Core
 The core components of Ark 2.
 
+WebHook Secret:
+`{"repository":{"url":"https://packagist.org/packages/sinri/ark-core"}}`
+
 ## ArkHelper
 
 The static helper functions.
