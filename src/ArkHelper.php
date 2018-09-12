@@ -145,6 +145,33 @@ class ArkHelper
         }
     }
 
+    /**
+     * Unset item and nested item in array
+     * @since 1.2
+     * @param array $array
+     * @param array|string|int $keychain
+     */
+    public static function removeFromArray(&$array, $keychain)
+    {
+        if (!is_array($array)) {
+            $array = [];
+        }
+        if (!is_array($keychain)) {
+            $keychain = [$keychain];
+        }
+
+        $headKey = array_shift($keychain);
+        if (empty($keychain)) {
+            //last
+            unset($array[$headKey]);
+        } else {
+            //not last
+            if (isset($array[$headKey])) {
+                self::removeFromArray($array[$headKey], $keychain);
+            }
+        }
+    }
+
     const ASSERT_TYPE_NOT_EMPTY = 0b111;
     const ASSERT_TYPE_NOT_VAIN = 0b1;
     const ASSERT_TYPE_NOT_NULL = 0b10;
