@@ -8,3 +8,5 @@ The static helper functions.
 ## ArkLogger
 
 An implementation of `Psr\Log\AbstractLogger` based on file system.
+
+Now Version 2.

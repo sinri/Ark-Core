@@ -14,22 +14,36 @@ use Psr\Log\LogLevel;
 class ArkLogger extends AbstractLogger
 {
     protected $targetLogDir = null;
-    protected $prefix = 'ark';
+    /**
+     * @var string|callable
+     */
+    protected $prefix = '';
     protected $ignoreLevel;
     protected $silent = false;
+    protected $showProcessID = false;
 
+    /**
+     * ArkLogger constructor.
+     * @param null $targetLogDir
+     * @param string|callable $prefix
+     */
     public function __construct($targetLogDir = null, $prefix = '')
     {
         $this->targetLogDir = $targetLogDir;
         $this->setPrefix($prefix);
         $this->ignoreLevel = LogLevel::INFO;
+        $this->showProcessID = false;
     }
 
     /**
-     * @param string $prefix
+     * @param string|callable $prefix
      */
-    public function setPrefix(string $prefix)
+    public function setPrefix($prefix)
     {
+        if (is_callable($prefix)) {
+            $this->prefix = $prefix;
+            return;
+        }
         $prefix = preg_replace('/[^A-Za-z0-9]/', '_', $prefix);
         $this->prefix = $prefix;
     }
@@ -45,6 +59,14 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
+     * @param bool $showProcessID
+     */
+    public function setShowProcessID(bool $showProcessID)
+    {
+        $this->showProcessID = $showProcessID;
+    }
+
+    /**
      * @param null $targetLogDir
      */
     public function setTargetLogDir($targetLogDir)
@@ -55,7 +77,7 @@ class ArkLogger extends AbstractLogger
     /**
      * @param string $ignoreLevel this level and above would be visible
      */
-    public function setIgnoreLevel(string $ignoreLevel)
+    public function setIgnoreLevel($ignoreLevel)
     {
         $this->ignoreLevel = $ignoreLevel;
     }
@@ -77,21 +99,6 @@ class ArkLogger extends AbstractLogger
             return;
         }
         @file_put_contents($target_file, $msg, FILE_APPEND);
-    }
-
-    /**
-     * If you want to output log directly to STDOUT, use this.
-     * @param $level
-     * @param $message
-     * @param array $context
-     */
-    public function echo($level, $message, array $context = array())
-    {
-        if ($this->shouldIgnoreThisLog($level)) {
-            return;
-        }
-        $msg = $this->generateLog($level, $message, $context);
-        echo $msg;
     }
 
     /**
@@ -131,7 +138,11 @@ class ArkLogger extends AbstractLogger
         $now = date('Y-m-d H:i:s');
         $level_string = "[{$level}]";
 
-        $log = "{$now} {$level_string} {$message} |";
+        $log = "{$now} {$level_string} ";
+        if ($this->showProcessID) {
+            $log .= "PID: " . getmypid() . " ";
+        }
+        $log .= "{$message} |";
         $log .= is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE);
         $log .= PHP_EOL;
 
@@ -152,7 +163,31 @@ class ArkLogger extends AbstractLogger
             @mkdir($this->targetLogDir, 0777, true);
         }
         $today = date('Y-m-d');
-        return $this->targetLogDir . '/log-' . (empty($this->prefix) ? '' : $this->prefix . '-') . $today . '.log';
+
+        if (is_callable($this->prefix)) {
+            $prefix = call_user_func_array($this->prefix, []);
+            // not check prefix here, let user ensure this correctness
+        } else {
+            $prefix = $this->prefix;
+        }
+
+        return $this->targetLogDir . '/log-' . (empty($this->prefix) ? '' : $prefix . '-') . $today . '.log';
+    }
+
+    /**
+     * If you want to output log directly to STDOUT, use this.
+     * @since 2.0 renamed from echo to print
+     * @param $level
+     * @param $message
+     * @param array $context
+     */
+    public function print($level, $message, array $context = array())
+    {
+        if ($this->shouldIgnoreThisLog($level)) {
+            return;
+        }
+        $msg = $this->generateLog($level, $message, $context);
+        echo $msg;
     }
 
 }
