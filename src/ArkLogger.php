@@ -102,6 +102,22 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
+     * @since 2.1
+     * Might be used in showing progress
+     * Without any DATE or CONTEXT but raw MESSAGE as string, even no tail/lead space
+     * @param $message
+     */
+    public function logInline($message)
+    {
+        $target_file = $this->decideTargetFile();
+        if (!$target_file) {
+            echo $message;
+            return;
+        }
+        @file_put_contents($target_file, $message, FILE_APPEND);
+    }
+
+    /**
      * @param $level
      * @return bool
      */
@@ -131,9 +147,10 @@ class ArkLogger extends AbstractLogger
      * @param $level
      * @param $message
      * @param string $object
+     * @param bool $enforceEndOfLine @since 2.1
      * @return string
      */
-    protected function generateLog($level, $message, $object = '')
+    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true)
     {
         $now = date('Y-m-d H:i:s');
         $level_string = "[{$level}]";
@@ -144,7 +161,7 @@ class ArkLogger extends AbstractLogger
         }
         $log .= "{$message} |";
         $log .= is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE);
-        $log .= PHP_EOL;
+        if ($enforceEndOfLine) $log .= PHP_EOL;
 
         return $log;
     }
@@ -180,13 +197,14 @@ class ArkLogger extends AbstractLogger
      * @param $level
      * @param $message
      * @param array $context
+     * @param bool $enforceEndOfLine @since 2.1
      */
-    public function print($level, $message, array $context = array())
+    public function print($level, $message, array $context = array(), $enforceEndOfLine = true)
     {
         if ($this->shouldIgnoreThisLog($level)) {
             return;
         }
-        $msg = $this->generateLog($level, $message, $context);
+        $msg = $this->generateLog($level, $message, $context, $enforceEndOfLine);
         echo $msg;
     }
 
