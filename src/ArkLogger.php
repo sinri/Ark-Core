@@ -44,7 +44,10 @@ class ArkLogger extends AbstractLogger
             $this->prefix = $prefix;
             return;
         }
-        $prefix = preg_replace('/[^A-Za-z0-9]/', '_', $prefix);
+        if ($prefix !== '') {
+            $prefix = preg_replace('/[^A-Za-z0-9]/', '_', $prefix);
+            // Observed case that forked child process would die here, reason unknown
+        }
         $this->prefix = $prefix;
     }
 
