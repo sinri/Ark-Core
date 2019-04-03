@@ -6,7 +6,7 @@
  * Time: 16:59
  */
 
-//require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 //require_once __DIR__ . '/../autoload.php';
 
 $logger = new \sinri\ark\core\ArkLogger(__DIR__ . '/log', 'core-logger-test');
@@ -18,3 +18,11 @@ $logger->critical(\Psr\Log\LogLevel::CRITICAL, [\Psr\Log\LogLevel::CRITICAL]);
 $logger = new \sinri\ark\core\ArkLogger(__DIR__ . '/log', 'Aa0/Bb1');
 $logger->setIgnoreLevel(\Psr\Log\LogLevel::ERROR);
 $logger->alert("file prefix should be Aa0_Bb1");
+
+// 2.2
+
+$logger = new \sinri\ark\core\ArkLogger(__DIR__ . '/log', 'core-logger-test', 'Ymd');
+$logger->info("YMD is good");
+
+$logger = new \sinri\ark\core\ArkLogger(__DIR__ . '/log', 'core-logger-test', null);
+$logger->info("No Rotating is good");

@@ -21,18 +21,25 @@ class ArkLogger extends AbstractLogger
     protected $ignoreLevel;
     protected $silent = false;
     protected $showProcessID = false;
+    /**
+     * @var string|null string should follow Date Format, and null for no rotating
+     * @since 2.2
+     */
+    protected $rotateTimeFormat = "Y-m-d";
 
     /**
      * ArkLogger constructor.
      * @param null $targetLogDir
      * @param string|callable $prefix
+     * @param string|null $rotateTimeFormat string should follow Date Format, and null for no rotating @since 2.2
      */
-    public function __construct($targetLogDir = null, $prefix = '')
+    public function __construct($targetLogDir = null, $prefix = '', $rotateTimeFormat = 'Y-m-d')
     {
         $this->targetLogDir = $targetLogDir;
         $this->setPrefix($prefix);
         $this->ignoreLevel = LogLevel::INFO;
         $this->showProcessID = false;
+        $this->rotateTimeFormat = $rotateTimeFormat;
     }
 
     /**
@@ -59,6 +66,15 @@ class ArkLogger extends AbstractLogger
         $logger = new ArkLogger();
         $logger->silent = true;
         return $logger;
+    }
+
+    /**
+     * @param string $rotateTimeFormat
+     * @since 2.2
+     */
+    public function setRotateTimeFormat(string $rotateTimeFormat)
+    {
+        $this->rotateTimeFormat = $rotateTimeFormat;
     }
 
     /**
@@ -102,22 +118,6 @@ class ArkLogger extends AbstractLogger
             return;
         }
         @file_put_contents($target_file, $msg, FILE_APPEND);
-    }
-
-    /**
-     * @since 2.1
-     * Might be used in showing progress
-     * Without any DATE or CONTEXT but raw MESSAGE as string, even no tail/lead space
-     * @param $message
-     */
-    public function logInline($message)
-    {
-        $target_file = $this->decideTargetFile();
-        if (!$target_file) {
-            echo $message;
-            return;
-        }
-        @file_put_contents($target_file, $message, FILE_APPEND);
     }
 
     /**
@@ -182,7 +182,21 @@ class ArkLogger extends AbstractLogger
         if (!file_exists($this->targetLogDir)) {
             @mkdir($this->targetLogDir, 0777, true);
         }
-        $today = date('Y-m-d');
+
+        return $this->getCurrentLogFilePath();
+    }
+
+    /**
+     * Sometime you may need to know where the log file is
+     * @return string
+     * @since 2.2
+     */
+    public function getCurrentLogFilePath()
+    {
+        $rotateTimeMark = "";
+        if ($this->rotateTimeFormat !== null) {
+            $rotateTimeMark .= "-" . date($this->rotateTimeFormat);
+        }
 
         if (is_callable($this->prefix)) {
             $prefix = call_user_func_array($this->prefix, []);
@@ -190,8 +204,23 @@ class ArkLogger extends AbstractLogger
         } else {
             $prefix = $this->prefix;
         }
+        return $this->targetLogDir . '/log' . (empty($this->prefix) ? '' : "-" . $prefix) . $rotateTimeMark . '.log';
+    }
 
-        return $this->targetLogDir . '/log-' . (empty($this->prefix) ? '' : $prefix . '-') . $today . '.log';
+    /**
+     * @since 2.1
+     * Might be used in showing progress
+     * Without any DATE or CONTEXT but raw MESSAGE as string, even no tail/lead space
+     * @param $message
+     */
+    public function logInline($message)
+    {
+        $target_file = $this->decideTargetFile();
+        if (!$target_file) {
+            echo $message;
+            return;
+        }
+        @file_put_contents($target_file, $message, FILE_APPEND);
     }
 
     /**
