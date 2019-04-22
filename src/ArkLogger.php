@@ -149,7 +149,7 @@ class ArkLogger extends AbstractLogger
      * Return the string format log content
      * @param $level
      * @param $message
-     * @param string $object
+     * @param string|array $object
      * @param bool $enforceEndOfLine @since 2.1
      * @return string
      */
