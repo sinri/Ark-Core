@@ -28,18 +28,43 @@ class ArkLogger extends AbstractLogger
     protected $rotateTimeFormat = "Y-m-d";
 
     /**
+     * @var ArkLoggerBuffer
+     * @since 2.3
+     */
+    protected $buffer = null;
+
+    /**
+     * @return ArkLoggerBuffer
+     */
+    public function getBuffer()
+    {
+        return $this->buffer;
+    }
+
+    /**
+     * @param ArkLoggerBuffer $buffer
+     * @since 2.3
+     */
+    public function setBuffer(ArkLoggerBuffer $buffer)
+    {
+        $this->buffer = $buffer;
+    }
+
+    /**
      * ArkLogger constructor.
      * @param null $targetLogDir
      * @param string|callable $prefix
      * @param string|null $rotateTimeFormat string should follow Date Format, and null for no rotating @since 2.2
+     * @param null|ArkLoggerBuffer $buffer if null, buffer off @since 2.3
      */
-    public function __construct($targetLogDir = null, $prefix = '', $rotateTimeFormat = 'Y-m-d')
+    public function __construct($targetLogDir = null, $prefix = '', $rotateTimeFormat = 'Y-m-d', $buffer = null)
     {
         $this->targetLogDir = $targetLogDir;
         $this->setPrefix($prefix);
         $this->ignoreLevel = LogLevel::INFO;
         $this->showProcessID = false;
         $this->rotateTimeFormat = $rotateTimeFormat;
+        $this->buffer = $buffer;
     }
 
     /**
@@ -102,16 +127,25 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * @param mixed $level
+     * If enabled buffer, also output to buffer @param mixed $level
      * @param string $message
      * @param array $context
+     *@since 2.3
      */
     public function log($level, $message, array $context = array())
     {
         if ($this->shouldIgnoreThisLog($level)) {
             return;
         }
-        $msg = $this->generateLog($level, $message, $context);
+        $msg = $this->generateLog($level, $message, $context, true, $body);
+
+        if ($this->buffer !== null) {
+            $this->buffer->appendRaw($level, $body);
+            if ($this->buffer->isBufferOnly()) {
+                return;
+            }
+        }
+
         $target_file = $this->decideTargetFile();
         if (!$target_file) {
             echo $msg;
@@ -151,22 +185,22 @@ class ArkLogger extends AbstractLogger
      * @param $message
      * @param string|array $object
      * @param bool $enforceEndOfLine @since 2.1
+     * @param string $logBody @since 2.3
      * @return string
      */
-    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true)
+    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true, &$logBody = "")
     {
         $now = date('Y-m-d H:i:s');
         $level_string = "[{$level}]";
+        $logHead = "{$now} {$level_string}";
 
-        $log = "{$now} {$level_string} ";
+        $logBody = "";
         if ($this->showProcessID) {
-            $log .= "PID: " . getmypid() . " ";
+            $logBody .= "PID: " . getmypid() . " ";
         }
-        $log .= "{$message} |";
-        $log .= is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE);
-        if ($enforceEndOfLine) $log .= PHP_EOL;
+        $logBody .= "{$message} |" . (is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE));
 
-        return $log;
+        return $logHead . " " . $logBody . ($enforceEndOfLine ? PHP_EOL : "");
     }
 
     /**

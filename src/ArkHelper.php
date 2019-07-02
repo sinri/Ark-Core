@@ -9,6 +9,8 @@
 namespace sinri\ark\core;
 
 
+use Exception;
+
 class ArkHelper
 {
     /**
@@ -62,7 +64,7 @@ class ArkHelper
      * @param $keychain
      * @param null $default
      * @param null|String $regex
-     * @param null|\Exception $exception
+     * @param null|Exception $exception
      * @return mixed|null
      */
     public static function readTarget($target, $keychain, $default = null, $regex = null, &$exception = null)
@@ -79,13 +81,13 @@ class ArkHelper
                 if (isset($target[$keychain])) {
                     $value = $target[$keychain];
                     if ($regex !== null && !preg_match($regex, $value)) {
-                        $exception = new \Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
+                        $exception = new Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
                         return $default;
                     }
                     $exception = null;
                     return $value;
                 } else {
-                    $exception = new \Exception("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
+                    $exception = new Exception("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
                     return $default;
                 }
             }
@@ -101,19 +103,19 @@ class ArkHelper
                 if (isset($target->$keychain)) {
                     $value = $target->$keychain;
                     if ($regex !== null && !preg_match($regex, $value)) {
-                        $exception = new \Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
+                        $exception = new Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
                         return $default;
                     }
                     $exception = null;
                     return $value;
                 } else {
-                    $exception = new \Exception("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
+                    $exception = new Exception("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
                     return $default;
                 }
             }
         } else {
             // not array nor object
-            $exception = new \Exception("SOURCE_ERROR", self::READ_TARGET_SOURCE_ERROR);
+            $exception = new Exception("SOURCE_ERROR", self::READ_TARGET_SOURCE_ERROR);
             return $default;
         }
     }
@@ -181,31 +183,31 @@ class ArkHelper
      * @param $object
      * @param null $exception_message
      * @param int $type
-     * @throws \Exception
+     * @throws Exception
      */
     public static function assertItem($object, $exception_message = null, $type = self::ASSERT_TYPE_NOT_EMPTY)
     {
         try {
             if (($type & 0b100) > 0 && $object === false) {
-                throw new \Exception();
+                throw new Exception();
             }
             if (($type & 0b10) > 0 && $object === null) {
-                throw new \Exception();
+                throw new Exception();
             }
             if (($type & 0b1) > 0 && empty($object)) {
-                throw new \Exception();
+                throw new Exception();
             }
             $exception_message = null;
-        } catch (\Exception $exception) {
-            throw new \Exception($exception_message === null ? __FUNCTION__ : $exception_message);
+        } catch (Exception $exception) {
+            throw new Exception($exception_message === null ? __FUNCTION__ : $exception_message);
         }
     }
 
     /**
-     * @since 0.11
      * @param string $error
      * @param array ...$parameters
-     * @throws \Exception
+     * @throws Exception
+     * @since 0.11
      */
     public static function quickNotEmptyAssert($error, ...$parameters)
     {
