@@ -13,4 +13,6 @@ An implementation of `Psr\Log\AbstractLogger` (PSR-3) based on file system.
 
 Since 2.2, the rotating style could be designed to time format other than `Y-m-d`, or just `null` for never rotating.
 
-Now Version 2.2.
+Since 2.3, the logger appends the support for Buffer. 
+
+Now Version 2.3.
