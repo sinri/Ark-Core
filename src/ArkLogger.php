@@ -274,4 +274,43 @@ class ArkLogger extends AbstractLogger
         echo $msg;
     }
 
+    /**
+     * @param bool $assert
+     * @param string $messageForTrue
+     * @param array|null $contextForTrue
+     * @param string $messageForFalse
+     * @param array|null $contextForFalse
+     * @param string $levelForTrue
+     * @param string $levelForFalse
+     * @since 2.4 this is a experimental function
+     */
+    public function smartLog($assert, $messageForTrue = "OK", array $contextForTrue = null, $messageForFalse = "ERROR", array $contextForFalse = null, $levelForTrue = LogLevel::INFO, $levelForFalse = LogLevel::ERROR)
+    {
+        if ($assert) {
+            if ($contextForTrue === null) {
+                $contextForTrue = ['assert' => $assert];
+            }
+            $this->log($levelForTrue, $messageForTrue, $contextForTrue);
+        } else {
+            if ($contextForFalse === null) {
+                $contextForFalse = ['assert' => $assert];
+            }
+            $this->log($levelForFalse, $messageForFalse, $contextForFalse);
+        }
+    }
+
+    /**
+     * @param bool $assert
+     * @param string $message
+     * @param array $context
+     * @since 2.4 this is a experimental function
+     */
+    public function smartLogLite($assert, $message = "", array $context = [])
+    {
+        if ($assert) {
+            $this->info("Assert True. " . $message, $context);
+        } else {
+            $this->error("Assert False. " . $message, $context);
+        }
+    }
 }
