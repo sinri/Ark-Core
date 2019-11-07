@@ -15,4 +15,8 @@ Since 2.2, the rotating style could be designed to time format other than `Y-m-d
 
 Since 2.3, the logger appends the support for Buffer. 
 
-Now Version 2.3.
+Since 2.4, the logger supports Smart Log.
+
+Since 2.5, add File System Kit.
+
+Now Version 2.5.
