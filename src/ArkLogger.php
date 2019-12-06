@@ -13,13 +13,25 @@ use Psr\Log\LogLevel;
 
 class ArkLogger extends AbstractLogger
 {
+    /**
+     * @var null|string Give the log storage directory, if null, output to STDOUT
+     */
     protected $targetLogDir = null;
     /**
      * @var string|callable
      */
     protected $prefix = '';
+    /**
+     * @var string values as LogLevel::LEVEL
+     */
     protected $ignoreLevel;
+    /**
+     * @var bool if keep completely silent
+     */
     protected $silent = false;
+    /**
+     * @var bool If show PID within every log row
+     */
     protected $showProcessID = false;
     /**
      * @var string|null string should follow Date Format, and null for no rotating
@@ -32,23 +44,12 @@ class ArkLogger extends AbstractLogger
      * @since 2.3
      */
     protected $buffer = null;
-
     /**
-     * @return ArkLoggerBuffer
+     * If true, the log files with same prefix would be put into a directory named with prefix
+     * @var bool
+     * @since 2.5
      */
-    public function getBuffer()
-    {
-        return $this->buffer;
-    }
-
-    /**
-     * @param ArkLoggerBuffer $buffer
-     * @since 2.3
-     */
-    public function setBuffer(ArkLoggerBuffer $buffer)
-    {
-        $this->buffer = $buffer;
-    }
+    protected $groupByPrefix = false;
 
     /**
      * ArkLogger constructor.
@@ -56,8 +57,9 @@ class ArkLogger extends AbstractLogger
      * @param string|callable $prefix
      * @param string|null $rotateTimeFormat string should follow Date Format, and null for no rotating @since 2.2
      * @param null|ArkLoggerBuffer $buffer if null, buffer off @since 2.3
+     * @param bool $groupByPrefix If true, the log files with same prefix would be put into a directory named with prefix
      */
-    public function __construct($targetLogDir = null, $prefix = '', $rotateTimeFormat = 'Y-m-d', $buffer = null)
+    public function __construct($targetLogDir = null, $prefix = '', $rotateTimeFormat = 'Y-m-d', $buffer = null, $groupByPrefix = false)
     {
         $this->targetLogDir = $targetLogDir;
         $this->setPrefix($prefix);
@@ -65,22 +67,30 @@ class ArkLogger extends AbstractLogger
         $this->showProcessID = false;
         $this->rotateTimeFormat = $rotateTimeFormat;
         $this->buffer = $buffer;
+        $this->groupByPrefix = $groupByPrefix;
     }
 
     /**
      * @param string|callable $prefix
+     * @return ArkLogger
      */
     public function setPrefix($prefix)
     {
+
         if (is_callable($prefix)) {
             $this->prefix = $prefix;
-            return;
-        }
-        if ($prefix !== '') {
-            $prefix = preg_replace('/[^A-Za-z0-9]/', '_', $prefix);
+        } elseif ($prefix !== '') {
+            $prefix = self::normalizePrefix($prefix);
             // Observed case that forked child process would die here, reason unknown
         }
         $this->prefix = $prefix;
+
+        return $this;
+    }
+
+    public static function normalizePrefix($rawPrefix)
+    {
+        return preg_replace('/[^A-Za-z0-9]/', '_', $rawPrefix);
     }
 
     /**
@@ -94,64 +104,178 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
+     * @return bool
+     */
+    public function isGroupByPrefix(): bool
+    {
+        return $this->groupByPrefix;
+    }
+
+    /**
+     * @param bool $groupByPrefix
+     * @return ArkLogger
+     */
+    public function setGroupByPrefix(bool $groupByPrefix): ArkLogger
+    {
+        $this->groupByPrefix = $groupByPrefix;
+        return $this;
+    }
+
+    /**
+     * @return ArkLoggerBuffer
+     */
+    public function getBuffer()
+    {
+        return $this->buffer;
+    }
+
+    /**
+     * @param ArkLoggerBuffer $buffer
+     * @return ArkLogger
+     * @since 2.3
+     */
+    public function setBuffer(ArkLoggerBuffer $buffer)
+    {
+        $this->buffer = $buffer;
+        return $this;
+    }
+
+    /**
      * @param string $rotateTimeFormat
+     * @return ArkLogger
      * @since 2.2
      */
     public function setRotateTimeFormat(string $rotateTimeFormat)
     {
         $this->rotateTimeFormat = $rotateTimeFormat;
+        return $this;
     }
 
     /**
      * @param bool $showProcessID
+     * @return ArkLogger
      */
     public function setShowProcessID(bool $showProcessID)
     {
         $this->showProcessID = $showProcessID;
+        return $this;
     }
 
     /**
      * @param null $targetLogDir
+     * @return ArkLogger
      */
     public function setTargetLogDir($targetLogDir)
     {
         $this->targetLogDir = $targetLogDir;
+        return $this;
     }
 
     /**
      * @param string $ignoreLevel this level and above would be visible
+     * @return ArkLogger
      */
     public function setIgnoreLevel($ignoreLevel)
     {
         $this->ignoreLevel = $ignoreLevel;
+        return $this;
     }
 
     /**
-     * If enabled buffer, also output to buffer @param mixed $level
-     * @param string $message
-     * @param array $context
-     *@since 2.3
+     * @param $message
+     * @return ArkLogger
+     * @since 2.1
+     * Might be used in showing progress
+     * Without any DATE or CONTEXT but raw MESSAGE as string, even no tail/lead space
      */
-    public function log($level, $message, array $context = array())
+    public function logInline($message)
     {
-        if ($this->shouldIgnoreThisLog($level)) {
-            return;
+        $target_file = $this->decideTargetFile();
+        if (!$target_file) {
+            echo $message;
+            return $this;
         }
-        $msg = $this->generateLog($level, $message, $context, true, $body);
+        @file_put_contents($target_file, $message, FILE_APPEND);
+        return $this;
+    }
 
-        if ($this->buffer !== null) {
-            $this->buffer->appendRaw($level, $body);
-            if ($this->buffer->isBufferOnly()) {
-                return;
+    /**
+     * Return the target file path which log would be written into.
+     * If target log directory not set, return false.
+     * @return bool|string
+     */
+    protected function decideTargetFile()
+    {
+        if (empty($this->targetLogDir)) {
+            return false;
+        }
+        if (!file_exists($this->targetLogDir)) {
+            @mkdir($this->targetLogDir, 0777, true);
+        }
+
+        return $this->getCurrentLogFilePath();
+    }
+
+    /**
+     * Sometime you may need to know where the log file is
+     * @return string
+     * @since 2.2
+     * @since 2.5 Add group by prefix support
+     */
+    public function getCurrentLogFilePath()
+    {
+        $rotateTimeMark = "";
+        if ($this->rotateTimeFormat !== null) {
+            $rotateTimeMark .= "-" . date($this->rotateTimeFormat);
+        }
+
+        if (is_callable($this->prefix)) {
+            $prefix = call_user_func_array($this->prefix, []);
+            // [del]not check prefix here, let user ensure this correctness[/del]
+            $prefix = self::normalizePrefix($prefix);
+            // I thought again and add this check...
+        } else {
+            $prefix = $this->prefix;
+        }
+
+        $dir = $this->targetLogDir;
+        $file = 'log' . (empty($prefix) ? '' : "-" . $prefix) . $rotateTimeMark . '.log';
+
+        if ($this->groupByPrefix) {
+            if ($prefix === '') {
+                $dir = $this->targetLogDir . DIRECTORY_SEPARATOR . 'default-log';
+                $file = 'log' . $rotateTimeMark . '.log';
+            } else {
+                $dir = $this->targetLogDir . DIRECTORY_SEPARATOR . $prefix;
+                $file = 'log' . "-" . $prefix . $rotateTimeMark . '.log';
             }
         }
 
-        $target_file = $this->decideTargetFile();
-        if (!$target_file) {
-            echo $msg;
-            return;
+        if (!file_exists($dir)) {
+            @mkdir($dir, 0777, true);
         }
-        @file_put_contents($target_file, $msg, FILE_APPEND);
+
+        return $dir . DIRECTORY_SEPARATOR . $file;
+    }
+
+    /**
+     * If you want to output log directly to STDOUT, use this.
+     * @param $level
+     * @param $message
+     * @param array $context
+     * @param bool $enforceEndOfLine @since 2.1
+     * @return ArkLogger
+     * @since 2.0 renamed from echo to print
+     */
+    public function print($level, $message, array $context = array(), $enforceEndOfLine = true)
+    {
+        if ($this->shouldIgnoreThisLog($level)) {
+            return $this;
+        }
+        $msg = $this->generateLog($level, $message, $context, $enforceEndOfLine);
+        echo $msg;
+
+        return $this;
     }
 
     /**
@@ -204,77 +328,6 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * Return the target file path which log would be written into.
-     * If target log directory not set, return false.
-     * @return bool|string
-     */
-    protected function decideTargetFile()
-    {
-        if (empty($this->targetLogDir)) {
-            return false;
-        }
-        if (!file_exists($this->targetLogDir)) {
-            @mkdir($this->targetLogDir, 0777, true);
-        }
-
-        return $this->getCurrentLogFilePath();
-    }
-
-    /**
-     * Sometime you may need to know where the log file is
-     * @return string
-     * @since 2.2
-     */
-    public function getCurrentLogFilePath()
-    {
-        $rotateTimeMark = "";
-        if ($this->rotateTimeFormat !== null) {
-            $rotateTimeMark .= "-" . date($this->rotateTimeFormat);
-        }
-
-        if (is_callable($this->prefix)) {
-            $prefix = call_user_func_array($this->prefix, []);
-            // not check prefix here, let user ensure this correctness
-        } else {
-            $prefix = $this->prefix;
-        }
-        return $this->targetLogDir . '/log' . (empty($this->prefix) ? '' : "-" . $prefix) . $rotateTimeMark . '.log';
-    }
-
-    /**
-     * @since 2.1
-     * Might be used in showing progress
-     * Without any DATE or CONTEXT but raw MESSAGE as string, even no tail/lead space
-     * @param $message
-     */
-    public function logInline($message)
-    {
-        $target_file = $this->decideTargetFile();
-        if (!$target_file) {
-            echo $message;
-            return;
-        }
-        @file_put_contents($target_file, $message, FILE_APPEND);
-    }
-
-    /**
-     * If you want to output log directly to STDOUT, use this.
-     * @since 2.0 renamed from echo to print
-     * @param $level
-     * @param $message
-     * @param array $context
-     * @param bool $enforceEndOfLine @since 2.1
-     */
-    public function print($level, $message, array $context = array(), $enforceEndOfLine = true)
-    {
-        if ($this->shouldIgnoreThisLog($level)) {
-            return;
-        }
-        $msg = $this->generateLog($level, $message, $context, $enforceEndOfLine);
-        echo $msg;
-    }
-
-    /**
      * @param bool $assert
      * @param string $messageForTrue
      * @param array|null $contextForTrue
@@ -282,6 +335,7 @@ class ArkLogger extends AbstractLogger
      * @param array|null $contextForFalse
      * @param string $levelForTrue
      * @param string $levelForFalse
+     * @return ArkLogger
      * @since 2.4 this is a experimental function
      */
     public function smartLog($assert, $messageForTrue = "OK", array $contextForTrue = null, $messageForFalse = "ERROR", array $contextForFalse = null, $levelForTrue = LogLevel::INFO, $levelForFalse = LogLevel::ERROR)
@@ -297,12 +351,46 @@ class ArkLogger extends AbstractLogger
             }
             $this->log($levelForFalse, $messageForFalse, $contextForFalse);
         }
+
+        return $this;
+    }
+
+    /**
+     * If enabled buffer, also output to buffer @param mixed $level
+     * @param string $message
+     * @param array $context
+     * @return ArkLogger
+     * @since 2.3
+     */
+    public function log($level, $message, array $context = array())
+    {
+        if ($this->shouldIgnoreThisLog($level)) {
+            return $this;
+        }
+        $msg = $this->generateLog($level, $message, $context, true, $body);
+
+        if ($this->buffer !== null) {
+            $this->buffer->appendRaw($level, $body);
+            if ($this->buffer->isBufferOnly()) {
+                return $this;
+            }
+        }
+
+        $target_file = $this->decideTargetFile();
+        if (!$target_file) {
+            echo $msg;
+            return $this;
+        }
+        @file_put_contents($target_file, $msg, FILE_APPEND);
+
+        return $this;
     }
 
     /**
      * @param bool $assert
      * @param string $message
      * @param array $context
+     * @return ArkLogger
      * @since 2.4 this is a experimental function
      */
     public function smartLogLite($assert, $message = "", array $context = [])
@@ -312,5 +400,6 @@ class ArkLogger extends AbstractLogger
         } else {
             $this->error("Assert False. " . $message, $context);
         }
+        return $this;
     }
 }

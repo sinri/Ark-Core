@@ -47,3 +47,10 @@ for ($i = 0; $i < 12; $i++) {
     $logger->info("random: " . uniqid(), [$i]);
 }
 echo "FIN -> " . microtime(true) . PHP_EOL;
+
+// 2.5
+
+$logger = new ArkLogger(__DIR__ . '/log', '', 'Ymd', null, true);
+$logger->info("without prefix");
+$logger = new ArkLogger(__DIR__ . '/log', 'x', 'Ymd', null, true);
+$logger->info("with prefix");
