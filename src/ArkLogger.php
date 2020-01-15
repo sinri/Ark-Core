@@ -135,7 +135,7 @@ class ArkLogger extends AbstractLogger
      * @return ArkLogger
      * @since 2.3
      */
-    public function setBuffer(ArkLoggerAbstractBuffer $buffer)
+    public function setBuffer($buffer)
     {
         $this->buffer = $buffer;
         return $this;

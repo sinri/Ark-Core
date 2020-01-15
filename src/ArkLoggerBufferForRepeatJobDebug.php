@@ -18,9 +18,9 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
 
     /**
      * ArkLoggerBuffer constructor.9
-     * @param callable $bufferFlusher if null, same as use defaultFlusher
+     * @param callable|null $bufferFlusher if null, same as use defaultFlusher
      * @param bool $bufferOnly if use tee-like style
-     * @param ArkLogger $flushLogger if null use silent logger
+     * @param ArkLogger|null $flushLogger if null use silent logger
      */
     public function __construct($bufferFlusher = null, $bufferOnly = false, $flushLogger = null)
     {
@@ -28,9 +28,10 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
         $this->bufferOnly = $bufferOnly;
 
         if ($this->bufferFlusher === null) {
-            $bufferFlusher = $this->defaultFlusher();
+            $this->useDefaultFlusher();
+        } else {
+            $this->bufferFlusher = $bufferFlusher;
         }
-        $this->bufferFlusher = $bufferFlusher;
 
         if ($flushLogger === null) {
             $flushLogger = ArkLogger::makeSilentLogger();
@@ -58,7 +59,7 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
         return true;
     }
 
-    public function defaultFlusher()
+    public function useDefaultFlusher()
     {
         $this->setBufferFlusher(function ($bufferItems) {
             for ($i = 0; $i < count($bufferItems); $i++) {
