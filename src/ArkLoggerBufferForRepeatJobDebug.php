@@ -12,7 +12,8 @@ use Psr\Log\LogLevel;
  */
 class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
 {
-    const COMMAND_REPORT_ERROR = "REPORT_ERROR"; // flush+clear
+    const COMMAND_REPORT_NORMAL = "REPORT_NORMAL"; // only flush higher than ignored level + clear
+    const COMMAND_REPORT_ERROR = "REPORT_ERROR"; // flush all + clear
     /**
      * @var ArkLogger
      */
@@ -63,6 +64,13 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
                 $this->flush();
                 $this->clear();
                 break;
+            case self::COMMAND_REPORT_NORMAL:
+                $this->bufferItems = array_filter($this->bufferItems, function ($item) {
+                    return ArkLogger::isLevelHighEnough($this->ignoreLevel, $item->level);
+                });
+                $this->flush();
+                $this->clear();
+                break;
             default:
                 return false;
         }
@@ -73,9 +81,11 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
     {
         $this->setBufferFlusher(function ($bufferItems) {
             for ($i = 0; $i < count($bufferItems); $i++) {
-                if (ArkLogger::isLevelHighEnough($this->flushLogger->getIgnoreLevel(), $bufferItems[$i]->level)) {
-                    $this->flushLogger->logInline($bufferItems[$i] . PHP_EOL);
-                }
+                //if (ArkLogger::isLevelHighEnough($this->flushLogger->getIgnoreLevel(), $bufferItems[$i]->level)) {
+                //    $this->flushLogger->logInline($bufferItems[$i] . PHP_EOL);
+                //}
+
+                $this->flushLogger->logInline($bufferItems[$i] . PHP_EOL);
             }
             return true;
         });
