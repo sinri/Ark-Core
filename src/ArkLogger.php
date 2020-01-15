@@ -25,6 +25,15 @@ class ArkLogger extends AbstractLogger
      * @var string values as LogLevel::LEVEL
      */
     protected $ignoreLevel;
+
+    /**
+     * @return string
+     */
+    public function getIgnoreLevel(): string
+    {
+        return $this->ignoreLevel;
+    }
+
     /**
      * @var bool if keep completely silent
      */
@@ -286,6 +295,8 @@ class ArkLogger extends AbstractLogger
     protected function shouldIgnoreThisLog($level)
     {
         if ($this->silent) return true;
+        return !self::isLevelHighEnough($this->ignoreLevel, $level);
+        /*
         static $levelValue = [
             LogLevel::EMERGENCY => 7,
             LogLevel::ALERT => 6,
@@ -298,6 +309,33 @@ class ArkLogger extends AbstractLogger
         ];
         $coming = ArkHelper::readTarget($levelValue, $level, 1);
         $limit = ArkHelper::readTarget($levelValue, $this->ignoreLevel, 0);
+        if ($coming < $limit) {
+            return true;
+        }
+        return false;
+        */
+    }
+
+    /**
+     * @param string $ignoreLevel the lowest visible level
+     * @param string $level
+     * @return bool
+     * @since 2.6.3
+     */
+    public static function isLevelHighEnough($ignoreLevel, $level)
+    {
+        static $levelValue = [
+            LogLevel::EMERGENCY => 7,
+            LogLevel::ALERT => 6,
+            LogLevel::CRITICAL => 5,
+            LogLevel::ERROR => 4,
+            LogLevel::WARNING => 3,
+            LogLevel::NOTICE => 2,
+            LogLevel::INFO => 1,
+            LogLevel::DEBUG => 0,
+        ];
+        $coming = ArkHelper::readTarget($levelValue, $level, 1);
+        $limit = ArkHelper::readTarget($levelValue, $ignoreLevel, 0);
         if ($coming < $limit) {
             return true;
         }

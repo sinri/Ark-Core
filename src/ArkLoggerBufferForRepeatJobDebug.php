@@ -3,6 +3,8 @@
 
 namespace sinri\ark\core;
 
+use Psr\Log\LogLevel;
+
 /**
  * Class ArkLoggerBufferForRepeatJobDebug
  * @package sinri\ark\core
@@ -17,12 +19,18 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
     protected $flushLogger;
 
     /**
+     * @var string values as LogLevel::LEVEL
+     */
+    protected $ignoreLevel;
+
+    /**
      * ArkLoggerBuffer constructor.9
      * @param callable|null $bufferFlusher if null, same as use defaultFlusher
      * @param bool $bufferOnly if use tee-like style
      * @param ArkLogger|null $flushLogger if null use silent logger
+     * @param string $ignoreLevel
      */
-    public function __construct($bufferFlusher = null, $bufferOnly = false, $flushLogger = null)
+    public function __construct($bufferFlusher = null, $bufferOnly = false, $flushLogger = null, $ignoreLevel = LogLevel::INFO)
     {
         $this->bufferItems = [];
         $this->bufferOnly = $bufferOnly;
@@ -37,6 +45,8 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
             $flushLogger = ArkLogger::makeSilentLogger();
         }
         $this->flushLogger = $flushLogger;
+
+        $this->ignoreLevel = $ignoreLevel;
     }
 
     public function appendItem($item)
@@ -63,7 +73,9 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
     {
         $this->setBufferFlusher(function ($bufferItems) {
             for ($i = 0; $i < count($bufferItems); $i++) {
-                $this->flushLogger->logInline($bufferItems[$i] . PHP_EOL);
+                if (ArkLogger::isLevelHighEnough($this->flushLogger->getIgnoreLevel(), $bufferItems[$i]->level)) {
+                    $this->flushLogger->logInline($bufferItems[$i] . PHP_EOL);
+                }
             }
             return true;
         });
