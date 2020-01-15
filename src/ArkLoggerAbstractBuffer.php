@@ -64,6 +64,10 @@ abstract class ArkLoggerAbstractBuffer
         return $this;
     }
 
+    /**
+     * @param $item
+     * @return ArkLoggerBufferItem
+     */
     abstract public function appendItem($item);
 
     /**

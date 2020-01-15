@@ -53,4 +53,13 @@ class ArkLoggerBufferItem
             'content' => $this->content,
         ];
     }
+
+    /**
+     * @return string
+     * @since 2.6.1
+     */
+    public function __toString()
+    {
+        return $this->time . ' [' . $this->level . '] ' . $this->content;
+    }
 }
