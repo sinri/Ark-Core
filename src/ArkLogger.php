@@ -336,10 +336,7 @@ class ArkLogger extends AbstractLogger
         ];
         $coming = ArkHelper::readTarget($levelValue, $level, 1);
         $limit = ArkHelper::readTarget($levelValue, $ignoreLevel, 0);
-        if ($coming < $limit) {
-            return true;
-        }
-        return false;
+        return ($coming >= $limit);
     }
 
     /**
