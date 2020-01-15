@@ -40,8 +40,9 @@ class ArkLogger extends AbstractLogger
     protected $rotateTimeFormat = "Y-m-d";
 
     /**
-     * @var ArkLoggerBuffer
-     * @since 2.3
+     * @var ArkLoggerAbstractBuffer
+     * @since 2.3 supported ArkLogBuffer
+     * @since 2.6 switched to ArkLoggerAbstractBuffer
      */
     protected $buffer = null;
     /**
@@ -56,7 +57,7 @@ class ArkLogger extends AbstractLogger
      * @param null $targetLogDir
      * @param string|callable $prefix
      * @param string|null $rotateTimeFormat string should follow Date Format, and null for no rotating @since 2.2
-     * @param null|ArkLoggerBuffer $buffer if null, buffer off @since 2.3
+     * @param null|ArkLoggerAbstractBuffer $buffer if null, buffer off @since 2.3 @since 2.6 switched to ArkLoggerAbstractBuffer
      * @param bool $groupByPrefix If true, the log files with same prefix would be put into a directory named with prefix
      */
     public function __construct($targetLogDir = null, $prefix = '', $rotateTimeFormat = 'Y-m-d', $buffer = null, $groupByPrefix = false)
@@ -122,7 +123,7 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * @return ArkLoggerBuffer
+     * @return ArkLoggerAbstractBuffer
      */
     public function getBuffer()
     {
@@ -130,11 +131,11 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * @param ArkLoggerBuffer $buffer
+     * @param ArkLoggerAbstractBuffer $buffer
      * @return ArkLogger
      * @since 2.3
      */
-    public function setBuffer(ArkLoggerBuffer $buffer)
+    public function setBuffer(ArkLoggerAbstractBuffer $buffer)
     {
         $this->buffer = $buffer;
         return $this;
@@ -401,5 +402,28 @@ class ArkLogger extends AbstractLogger
             $this->error("Assert False. " . $message, $context);
         }
         return $this;
+    }
+
+    /**
+     * It is better use this when ROTATE function is disabled.
+     * @return bool
+     * @since 2.6
+     */
+    public function removeCurrentLogFile()
+    {
+        $file = $this->decideTargetFile();
+        return @unlink($file);
+    }
+
+    /**
+     * @param string $command
+     * @param array $meta
+     * @since 2.6
+     */
+    public function sendCommandToBuffer($command, $meta = [])
+    {
+        if ($this->buffer !== null) {
+            $this->buffer->whenCommandComesFromLogger($command, $meta);
+        }
     }
 }
