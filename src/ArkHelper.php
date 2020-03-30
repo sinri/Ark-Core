@@ -245,6 +245,7 @@ class ArkHelper
         return (php_sapi_name() === 'cli') ? true : false;
     }
 
+    // For more @see https://www.php.net/manual/en/timezones.php
     const TIMEZONE_SHANGHAI = "Asia/Shanghai"; // +8
     const TIMEZONE_TOKYO = "Asia/Tokyo"; // +9
 
