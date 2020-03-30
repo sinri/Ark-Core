@@ -244,4 +244,15 @@ class ArkHelper
     {
         return (php_sapi_name() === 'cli') ? true : false;
     }
+
+    const TIMEZONE_SHANGHAI = "Asia/Shanghai";
+
+    /**
+     * Set Timezone as +08:00 Shanghai, P. R. China
+     * @since 2.6.7
+     */
+    public static function configureTimezone()
+    {
+        date_default_timezone_set(self::TIMEZONE_SHANGHAI);
+    }
 }
