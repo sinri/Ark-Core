@@ -63,7 +63,7 @@ class ArkLogger extends AbstractLogger
 
     /**
      * ArkLogger constructor.
-     * @param null $targetLogDir
+     * @param string|null $targetLogDir null for write to STDOUT
      * @param string|callable $prefix
      * @param string|null $rotateTimeFormat string should follow Date Format, and null for no rotating @since 2.2
      * @param null|ArkLoggerAbstractBuffer $buffer if null, buffer off @since 2.3 @since 2.6 switched to ArkLoggerAbstractBuffer
@@ -228,12 +228,16 @@ class ArkLogger extends AbstractLogger
 
     /**
      * Sometime you may need to know where the log file is
-     * @return string
+     * @return string|false it returns FALSE when the logger has to output to STDOUT directly
      * @since 2.2
      * @since 2.5 Add group by prefix support
      */
     public function getCurrentLogFilePath()
     {
+        if (empty($this->targetLogDir)) {
+            return false;
+        }
+
         $rotateTimeMark = "";
         if ($this->rotateTimeFormat !== null) {
             $rotateTimeMark .= "-" . date($this->rotateTimeFormat);
@@ -415,10 +419,9 @@ class ArkLogger extends AbstractLogger
         $target_file = $this->decideTargetFile();
         if (!$target_file) {
             echo $msg;
-            return $this;
+        } else {
+            @file_put_contents($target_file, $msg, FILE_APPEND);
         }
-        @file_put_contents($target_file, $msg, FILE_APPEND);
-
         return $this;
     }
 
