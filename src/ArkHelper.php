@@ -209,6 +209,12 @@ class ArkHelper
      * @throws Exception
      * @since 0.11
      */
+
+    /**
+     * @param string $error
+     * @param mixed ...$parameters
+     * @throws Exception
+     */
     public static function quickNotEmptyAssert($error, ...$parameters)
     {
         foreach ($parameters as $parameter) {
@@ -242,7 +248,7 @@ class ArkHelper
      */
     public static function isCLI()
     {
-        return (php_sapi_name() === 'cli') ? true : false;
+        return php_sapi_name() === 'cli';
     }
 
     // For more @see https://www.php.net/manual/en/timezones.php

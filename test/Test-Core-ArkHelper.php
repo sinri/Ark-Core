@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+
 /**
  * Created by PhpStorm.
  * User: Sinri
@@ -80,7 +81,7 @@ foreach ($cases as $case_index => $case) {
         } else {
             echo "CORRECT";
         }
-    } catch (\Exception $exception) {
+    } catch (Exception $exception) {
         if (!$case[2]) {
             echo "WRONG (should not throw)";
         } else {
