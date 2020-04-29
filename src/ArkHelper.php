@@ -264,4 +264,52 @@ class ArkHelper
     {
         date_default_timezone_set($timezoneID);
     }
+
+    /**
+     * @param string $string
+     * @param string $prefix
+     * @param bool $caseInsensitive
+     * @return bool
+     * @since 2.7.0
+     */
+    public static function stringHasPrefix($string, $prefix, $caseInsensitive = false)
+    {
+        if ($caseInsensitive) {
+            return stripos($string, $prefix) === 0;
+        } else {
+            return strpos($string, $prefix) === 0;
+        }
+    }
+
+    /**
+     * @param string $string
+     * @param string $subString
+     * @param bool $caseInsensitive
+     * @return bool
+     * @since 2.7.0
+     */
+    public static function stringContainsSubString($string, $subString, $caseInsensitive = false)
+    {
+        if ($caseInsensitive) {
+            return stripos($string, $subString) !== false;
+        } else {
+            return strpos($string, $subString) !== false;
+        }
+    }
+
+    /**
+     * @param string $string
+     * @param string $suffix
+     * @param bool $caseInsensitive
+     * @return bool
+     * @since 2.7.0
+     */
+    public static function stringHasSuffix($string, $suffix, $caseInsensitive = false)
+    {
+        if ($caseInsensitive) {
+            return stripos($string, $suffix) === (strlen($string) - strlen($suffix));
+        } else {
+            return strpos($string, $suffix) === (strlen($string) - strlen($suffix));
+        }
+    }
 }

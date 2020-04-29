@@ -9,7 +9,7 @@
 
 use sinri\ark\core\ArkHelper;
 
-//require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 //require_once __DIR__ . '/../autoload.php';
 
 // readTarget($target,$keychain,$default=null,$regex=null,&$exception=null)
@@ -92,8 +92,11 @@ foreach ($cases as $case_index => $case) {
     echo PHP_EOL;
 }
 
-ArkHelper::quickNotEmptyAssert("quick not empty assert failed", 0, 1, false, null, '', '0', '00', 000, 0x00, 0b00, ' ', []);
-
+try {
+    ArkHelper::quickNotEmptyAssert("quick not empty assert failed", 0, 1, false, null, '', '0', '00', 000, 0x00, 0b00, ' ', []);
+} catch (Exception $exception) {
+    echo $exception->getMessage() . PHP_EOL;
+}
 //turnListToMapping
 
 echo "Test For turnListToMapping ... " . PHP_EOL;
@@ -102,3 +105,17 @@ $result = ArkHelper::turnListToMapping([
     ["id" => "A", "value" => "aaa"], ["id" => "B", "value" => "bbb"],
 ], "id");
 print_r($result);
+
+echo "Test For Prefix and Suffix ... " . PHP_EOL;
+
+$string = "abcdefg";
+$prefix = "abc";
+$suffix = "efg";
+$middle = "cde";
+$parts = [$prefix, $middle, $suffix];
+foreach ($parts as $part) {
+    echo "[$part] "
+        . (ArkHelper::stringHasPrefix($string, $part) ? 'P' : 'NP') . ' '
+        . (ArkHelper::stringHasSuffix($string, $part) ? 'S' : 'NS') . ' '
+        . PHP_EOL;
+}

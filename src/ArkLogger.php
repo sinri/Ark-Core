@@ -25,15 +25,6 @@ class ArkLogger extends AbstractLogger
      * @var string values as LogLevel::LEVEL
      */
     protected $ignoreLevel;
-
-    /**
-     * @return string
-     */
-    public function getIgnoreLevel(): string
-    {
-        return $this->ignoreLevel;
-    }
-
     /**
      * @var bool if keep completely silent
      */
@@ -47,7 +38,6 @@ class ArkLogger extends AbstractLogger
      * @since 2.2
      */
     protected $rotateTimeFormat = "Y-m-d";
-
     /**
      * @var ArkLoggerAbstractBuffer
      * @since 2.3 supported ArkLogBuffer
@@ -114,6 +104,33 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
+     * @return string
+     */
+    public function getIgnoreLevel(): string
+    {
+        return $this->ignoreLevel;
+    }
+
+    /**
+     * @param string $ignoreLevel this level and above would be visible
+     * @return ArkLogger
+     */
+    public function setIgnoreLevel($ignoreLevel)
+    {
+        $this->ignoreLevel = $ignoreLevel;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     * @since 2.7.0
+     */
+    public function isSilent(): bool
+    {
+        return $this->silent;
+    }
+
+    /**
      * @return bool
      */
     public function isGroupByPrefix(): bool
@@ -172,22 +189,12 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * @param null $targetLogDir
+     * @param null|string $targetLogDir
      * @return ArkLogger
      */
     public function setTargetLogDir($targetLogDir)
     {
         $this->targetLogDir = $targetLogDir;
-        return $this;
-    }
-
-    /**
-     * @param string $ignoreLevel this level and above would be visible
-     * @return ArkLogger
-     */
-    public function setIgnoreLevel($ignoreLevel)
-    {
-        $this->ignoreLevel = $ignoreLevel;
         return $this;
     }
 
