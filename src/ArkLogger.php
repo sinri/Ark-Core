@@ -13,6 +13,22 @@ use Psr\Log\LogLevel;
 
 class ArkLogger extends AbstractLogger
 {
+
+    /*
+     * @since 2.7.1 
+     * Changed the log level value according to RFC 5424, Syslog Message Severities
+     * Now lower is higher important.
+     */
+
+    const VALUE_OF_EMERGENCY = 0; // LOG_EMERG; // system is unusable; for the situation danger has come
+    const VALUE_OF_ALERT = 1; // LOG_ALERT; // action must be taken immediately; for the situation danger is coming
+    const VALUE_OF_CRITICAL = 2;//LOG_CRIT; // critical conditions; for the situation risk of danger appeared, should consider upgrade codes to avoid danger
+    const VALUE_OF_ERROR = 3;//LOG_ERR; // error conditions; for the runtime errors stopped the codes running
+    const VALUE_OF_WARNING = 4;//LOG_WARNING; // warning conditions; for warning when something strange happened
+    const VALUE_OF_NOTICE = 5;//LOG_NOTICE; // normal but significant condition; for normal events should be recorded
+    const VALUE_OF_INFO = 6;//LOG_INFO; // informational messages; for runtime details, the default level for logging
+    const VALUE_OF_DEBUG = 7;//LOG_DEBUG; // debug-level messages; for verbose output to debug
+
     /**
      * @var null|string Give the log storage directory, if null, output to STDOUT
      */
@@ -306,48 +322,30 @@ class ArkLogger extends AbstractLogger
     protected function shouldIgnoreThisLog($level)
     {
         if ($this->silent) return true;
-        return !self::isLevelHighEnough($this->ignoreLevel, $level);
-        /*
-        static $levelValue = [
-            LogLevel::EMERGENCY => 7,
-            LogLevel::ALERT => 6,
-            LogLevel::CRITICAL => 5,
-            LogLevel::ERROR => 4,
-            LogLevel::WARNING => 3,
-            LogLevel::NOTICE => 2,
-            LogLevel::INFO => 1,
-            LogLevel::DEBUG => 0,
-        ];
-        $coming = ArkHelper::readTarget($levelValue, $level, 1);
-        $limit = ArkHelper::readTarget($levelValue, $this->ignoreLevel, 0);
-        if ($coming < $limit) {
-            return true;
-        }
-        return false;
-        */
+        return !self::isLevelSeriousEnough($this->ignoreLevel, $level);
     }
 
     /**
-     * @param string $ignoreLevel the lowest visible level
+     * @param string $leastSeriousLevel the least serious level which is visible
      * @param string $level
      * @return bool
      * @since 2.6.3
      */
-    public static function isLevelHighEnough($ignoreLevel, $level)
+    public static function isLevelSeriousEnough($leastSeriousLevel, $level)
     {
         static $levelValue = [
-            LogLevel::EMERGENCY => 7,
-            LogLevel::ALERT => 6,
-            LogLevel::CRITICAL => 5,
-            LogLevel::ERROR => 4,
-            LogLevel::WARNING => 3,
-            LogLevel::NOTICE => 2,
-            LogLevel::INFO => 1,
-            LogLevel::DEBUG => 0,
+            LogLevel::EMERGENCY => self::VALUE_OF_EMERGENCY,
+            LogLevel::ALERT => self::VALUE_OF_ALERT,
+            LogLevel::CRITICAL => self::VALUE_OF_CRITICAL,
+            LogLevel::ERROR => self::VALUE_OF_ERROR,
+            LogLevel::WARNING => self::VALUE_OF_WARNING,
+            LogLevel::NOTICE => self::VALUE_OF_NOTICE,
+            LogLevel::INFO => self::VALUE_OF_INFO,
+            LogLevel::DEBUG => self::VALUE_OF_DEBUG,
         ];
-        $coming = ArkHelper::readTarget($levelValue, $level, 1);
-        $limit = ArkHelper::readTarget($levelValue, $ignoreLevel, 0);
-        return ($coming >= $limit);
+        $coming = ArkHelper::readTarget($levelValue, $level, self::VALUE_OF_INFO);
+        $limit = ArkHelper::readTarget($levelValue, $leastSeriousLevel, self::VALUE_OF_DEBUG);
+        return ($coming <= $limit);
     }
 
     /**
@@ -446,6 +444,16 @@ class ArkLogger extends AbstractLogger
         } else {
             $this->error("Assert False. " . $message, $context);
         }
+        return $this;
+    }
+
+    /**
+     * A special NOTICE level log for call stack
+     * @return $this
+     */
+    public function signpost()
+    {
+        $this->notice(ArkHelper::getDebugBacktraceString());
         return $this;
     }
 

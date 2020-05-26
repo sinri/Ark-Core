@@ -60,12 +60,12 @@ class ArkHelper
     const READ_TARGET_SOURCE_ERROR = 3;
 
     /**
-     * @param $target
-     * @param $keychain
-     * @param null $default
+     * @param object|array $target
+     * @param string|int|array $keychain
+     * @param mixed $default
      * @param null|String $regex
      * @param null|Exception $exception
-     * @return mixed|null
+     * @return mixed
      */
     public static function readTarget($target, $keychain, $default = null, $regex = null, &$exception = null)
     {
@@ -78,7 +78,7 @@ class ArkHelper
                 $sub_array = self::readTarget($target, $headKey, [], null, $exception);
                 return self::readTarget($sub_array, $keychain, $default, $regex, $exception);
             } else {
-                if (isset($target[$keychain])) {
+                if (key_exists($keychain, $target)) {
                     $value = $target[$keychain];
                     if ($regex !== null && !preg_match($regex, $value)) {
                         $exception = new Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
@@ -100,7 +100,7 @@ class ArkHelper
                 $sub_array = self::readTarget($target, $headKey, [], null, $exception);
                 return self::readTarget($sub_array, $keychain, $default, $regex, $exception);
             } else {
-                if (isset($target->$keychain)) {
+                if (property_exists($target, $keychain)) {
                     $value = $target->$keychain;
                     if ($regex !== null && !preg_match($regex, $value)) {
                         $exception = new Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
@@ -148,10 +148,42 @@ class ArkHelper
     }
 
     /**
+     * @param object $object
+     * @param array|string $keychain
+     * @param mixed $value
+     * @since 2.7.1
+     */
+    public static function writeIntoObject(&$object, $keychain, $value)
+    {
+        if (!is_object($object)) {
+            $object = (object)array();//json_decode(json_encode([]));
+        }
+        if (!is_array($keychain)) {
+            $keychain = [$keychain];
+        }
+
+        $headKey = array_shift($keychain);
+        if (empty($keychain)) {
+            // last
+            $object->$headKey = $value;
+        } else {
+            // not last
+            if (!isset($object->$headKey)) {
+                $object->$headKey = (object)array();//json_decode(json_encode([]));
+            }
+            if (is_array($object->$headKey)) {
+                self::writeIntoArray($object->$headKey, $keychain, $value);
+            } else {
+                self::writeIntoObject($object->$headKey, $keychain, $value);
+            }
+        }
+    }
+
+    /**
      * Unset item and nested item in array
-     * @since 1.2
      * @param array $array
      * @param array|string|int $keychain
+     * @since 1.2
      */
     public static function removeFromArray(&$array, $keychain)
     {
@@ -311,5 +343,44 @@ class ArkHelper
         } else {
             return strpos($string, $suffix) === (strlen($string) - strlen($suffix));
         }
+    }
+
+    /**
+     * @return array
+     * @since 2.7.1
+     */
+    public static function getDebugBacktrace()
+    {
+        return debug_backtrace();
+    }
+
+    /**
+     * @return string
+     * @since 2.7.1
+     */
+    public static function getDebugBacktraceString()
+    {
+        $debug = debug_backtrace();
+        $string = "";
+        foreach ($debug as $index => $item) {
+            if ($index === 0) {
+                $string .= "[$index] Called by " . PHP_EOL;
+            } else {
+                $string .= "[$index] Which is called by " . PHP_EOL;
+            }
+            //$string .= "Called by ". $index.' th caller'.PHP_EOL;
+            $string .= "\tLocation: " . $item['file'] . '@' . $item['line'] . PHP_EOL;
+            $string .= "\tMethod: " . $item['class'] . $item['type'] . $item['function'] . PHP_EOL;
+            if (isset($item['args']) && !empty($item['args'])) {
+                $string .= "\tArguments: ";
+                //. implode(',', $item['args']) . PHP_EOL;
+                $argsMapped = array_map('json_encode', $item['args']);
+                $string .= implode(', ', $argsMapped) . PHP_EOL;
+            }
+//            if(array_key_exists('object',$item)){
+//                $string .= "\tEntity: ".var_export($item['object'],true).PHP_EOL;
+//            }
+        }
+        return $string;
     }
 }

@@ -66,7 +66,7 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
                 break;
             case self::COMMAND_REPORT_NORMAL:
                 $this->bufferItems = array_filter($this->bufferItems, function ($item) {
-                    return ArkLogger::isLevelHighEnough($this->ignoreLevel, $item->level);
+                    return ArkLogger::isLevelSeriousEnough($this->ignoreLevel, $item->level);
                 });
                 $this->bufferItems = array_values($this->bufferItems);
                 $this->flush();

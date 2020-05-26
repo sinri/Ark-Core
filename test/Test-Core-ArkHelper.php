@@ -119,3 +119,29 @@ foreach ($parts as $part) {
         . (ArkHelper::stringHasSuffix($string, $part) ? 'S' : 'NS') . ' '
         . PHP_EOL;
 }
+
+//
+
+$obj = json_decode(json_encode(['a' => ['d' => 'e']]));
+ArkHelper::writeIntoObject($obj, ['a', 'b', 'c'], 'd');
+var_dump($obj);
+
+//
+$tempClass = new class {
+    function x($t)
+    {
+        $debug = ArkHelper::getDebugBacktrace();
+        var_dump($debug);
+//        foreach ($debug as $item){
+//            echo "Location: ".$item['file'].'@'.$item['line'].PHP_EOL;
+//            echo "Method: ".$item['class'].$item['type'].$item['function'].PHP_EOL;
+//            echo "Arguments: ".implode(',',$item['args']).PHP_EOL;
+//            if(array_key_exists('object',$item)){
+//                echo "Entity: ".$item['object'].PHP_EOL;
+//            }
+//        }
+        echo ArkHelper::getDebugBacktraceString();
+    }
+};
+
+$tempClass->x(1);
