@@ -18,6 +18,9 @@ class ArkLogger extends AbstractLogger
      * @since 2.7.1 
      * Changed the log level value according to RFC 5424, Syslog Message Severities
      * Now lower is higher important.
+     *
+     * In WINNT, Darwin and Linux, the values of PHP defined LOG_* differ.
+     * So this class defined them as constants following the DARWIN/LINUX standard.
      */
 
     const VALUE_OF_EMERGENCY = 0; // LOG_EMERG; // system is unusable; for the situation danger has come

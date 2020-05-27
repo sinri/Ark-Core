@@ -34,6 +34,7 @@ class ArkHelper
 
     /**
      * For Autoload File
+     * Notice: It is better to use the autoload function provided by Composer.
      * @param string $base_namespace such as sinri\enoch
      * @param string $base_path /code/sinri/enoch
      * @param string $extension
