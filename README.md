@@ -1,5 +1,8 @@
 # Ark-Core
+
 The core components of Ark 2.
+
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/sinri/ark-core)
 
 ## ArkHelper
 
@@ -17,8 +20,8 @@ Since 2.3, the logger appends the support for Buffer.
 
 Since 2.4, the logger supports Smart Log.
 
+## Others
+
 Since 2.5, add File System Kit.
 
 Since 2.7.1, add ArkArray.
-
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/sinri/ark-core)
