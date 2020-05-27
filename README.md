@@ -19,4 +19,6 @@ Since 2.4, the logger supports Smart Log.
 
 Since 2.5, add File System Kit.
 
-Now Version 2.5.
+Since 2.7.1, add ArkArray.
+
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/sinri/ark-core)
