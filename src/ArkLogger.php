@@ -482,4 +482,61 @@ class ArkLogger extends AbstractLogger
             $this->buffer->whenCommandComesFromLogger($command, $meta);
         }
     }
+
+    /**
+     * @param int $errNo
+     * @param string $errStr
+     * @param string $errFile
+     * @param int $errLine
+     * @return ArkLogger
+     * @since 2.7.2
+     */
+    public function logErrorInHandler(int $errNo, string $errStr, string $errFile, int $errLine)
+    {
+        $systemErrorTypeName = 'UnknownError';
+        $systemErrorExpression = $errFile . '@' . $errLine . ' ' . $errStr;
+        switch ($errNo) {
+            case E_ERROR:
+                $systemErrorTypeName = 'E_ERROR';
+                $this->error($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_USER_ERROR:
+                $systemErrorTypeName = 'E_USER_ERROR';
+                $this->error($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_WARNING:
+                $systemErrorTypeName = 'E_WARNING';
+                $this->warning($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_USER_WARNING:
+                $systemErrorTypeName = 'E_USER_WARNING';
+                $this->warning($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_NOTICE:
+                $systemErrorTypeName = 'E_NOTICE';
+                $this->notice($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_USER_NOTICE:
+                $systemErrorTypeName = 'E_USER_NOTICE';
+                $this->notice($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_STRICT:
+                $systemErrorTypeName = 'E_STRICT';
+                $this->notice($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_DEPRECATED:
+                $systemErrorTypeName = 'E_DEPRECATED';
+                $this->notice($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            case E_USER_DEPRECATED:
+                $systemErrorTypeName = 'E_USER_DEPRECATED';
+                $this->notice($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+            default:
+                $this->error($systemErrorTypeName . ' ' . $systemErrorExpression);
+                break;
+        }
+        $this->logInline(ArkHelper::getDebugBacktraceString() . PHP_EOL);
+        return $this;
+    }
 }

@@ -384,4 +384,32 @@ class ArkHelper
         }
         return $string;
     }
+
+    /**
+     * It is a complete implement, while you can also take it as sample to build thy own
+     * @param ArkLogger $logger
+     * @param int $level
+     * @param bool $takeErrorAsFixed 如果函数返回 FALSE，标准错误处理处理程序将会继续调用。
+     * @return callable|null
+     * @since 2.7.2
+     */
+    public static function registerErrorHandlerForLogging(ArkLogger $logger, $level = E_ALL | E_STRICT, $takeErrorAsFixed = false)
+    {
+        return set_error_handler(
+            function (int $errNo, string $errStr, string $errFile, int $errLine) use ($takeErrorAsFixed, $logger) {
+                $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine);
+                return $takeErrorAsFixed;
+            },
+            $level
+        );
+    }
+
+    /**
+     * Just restore the error handler as PHP provided power
+     * @since 2.7.2
+     */
+    public static function restoreErrorHandler()
+    {
+        restore_error_handler();
+    }
 }
