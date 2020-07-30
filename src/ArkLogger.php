@@ -539,4 +539,31 @@ class ArkLogger extends AbstractLogger
         $this->logInline(ArkHelper::getDebugBacktraceString() . PHP_EOL);
         return $this;
     }
+
+    /**
+     * @var ArkLogger
+     * @since 2.7.4
+     */
+    private static $defaultLogger;
+
+    /**
+     * @return ArkLogger
+     * @since 2.7.4
+     */
+    public static function getDefaultLogger(): ArkLogger
+    {
+        if (self::$defaultLogger === null) {
+            self::$defaultLogger = new ArkLogger();
+        }
+        return self::$defaultLogger;
+    }
+
+    /**
+     * @param ArkLogger $logger
+     * @since 2.7.4
+     */
+    public static function setDefaultLogger(ArkLogger $logger)
+    {
+        self::$defaultLogger = $logger;
+    }
 }

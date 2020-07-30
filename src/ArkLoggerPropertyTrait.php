@@ -20,14 +20,18 @@ trait ArkLoggerPropertyTrait
      */
     public function getLogger(): ArkLogger
     {
+        if ($this->logger === null) {
+            // @since 2.7.4
+            $this->logger = ArkLogger::getDefaultLogger();
+        }
         return $this->logger;
     }
 
     /**
      * @param ArkLogger $logger
-     * @return ArkLoggerPropertyTrait
+     * @return static
      */
-    public function setLogger(ArkLogger $logger): ArkLoggerPropertyTrait
+    public function setLogger(ArkLogger $logger): self
     {
         $this->logger = $logger;
         return $this;
