@@ -283,7 +283,7 @@ class ArkLogger extends AbstractLogger
      * @param array $context
      * @return ArkLogger
      * @since 2.0 renamed from echo to print
-     * @since 2.7.5 The End of Line Enforcement removed
+     * @since 2.7.6 The End of Line Enforcement removed
      */
     public function print($level, $message, array $context = array())
     {

@@ -83,7 +83,7 @@ abstract class ArkLoggerAbstractFormatter
      * @param string $message
      * @param array $object
      * @return string
-     * @since 2.7.5
+     * @since 2.7.6
      */
     abstract public function generateLog(string $level, string $message, array $object = []): string;
 }

@@ -17,7 +17,7 @@ class ArkLoggerFormatterForJsonLine extends ArkLoggerAbstractFormatter
      * @param string $message
      * @param array $object
      * @return string
-     * @since 2.7.5
+     * @since 2.7.6
      */
     public function generateLog(string $level, string $message, array $object = []): string
     {

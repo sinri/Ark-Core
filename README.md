@@ -20,7 +20,7 @@ Since 2.3, the logger appends the support for Buffer.
 
 Since 2.4, the logger supports Smart Log.
 
-Since 2.7.5, the logger supports customer logging format.
+Since 2.7.6, the logger supports customer logging format.
 
 ## Others
 
