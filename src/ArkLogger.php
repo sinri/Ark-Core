@@ -31,13 +31,19 @@ class ArkLogger extends AbstractLogger
     const VALUE_OF_NOTICE = 5;//LOG_NOTICE; // normal but significant condition; for normal events should be recorded
     const VALUE_OF_INFO = 6;//LOG_INFO; // informational messages; for runtime details, the default level for logging
     const VALUE_OF_DEBUG = 7;//LOG_DEBUG; // debug-level messages; for verbose output to debug
-
+    /**
+     * @var ArkLogger
+     * @since 2.7.4
+     */
+    private static $defaultLogger;
     /**
      * @var null|string Give the log storage directory, if null, output to STDOUT
      */
     protected $targetLogDir = null;
     /**
      * @var string|callable
+     * A string, or a callable like
+     * function() : string
      */
     protected $prefix = '';
     /**
@@ -48,10 +54,6 @@ class ArkLogger extends AbstractLogger
      * @var bool if keep completely silent
      */
     protected $silent = false;
-    /**
-     * @var bool If show PID within every log row
-     */
-    protected $showProcessID = false;
     /**
      * @var string|null string should follow Date Format, and null for no rotating
      * @since 2.2
@@ -69,6 +71,10 @@ class ArkLogger extends AbstractLogger
      * @since 2.5
      */
     protected $groupByPrefix = false;
+    /**
+     * @var ArkLoggerAbstractFormatter
+     */
+    protected $formatter;
 
     /**
      * ArkLogger constructor.
@@ -77,16 +83,29 @@ class ArkLogger extends AbstractLogger
      * @param string|null $rotateTimeFormat string should follow Date Format, and null for no rotating @since 2.2
      * @param null|ArkLoggerAbstractBuffer $buffer if null, buffer off @since 2.3 @since 2.6 switched to ArkLoggerAbstractBuffer
      * @param bool $groupByPrefix If true, the log files with same prefix would be put into a directory named with prefix
+     * @param null|ArkLoggerAbstractFormatter $formatter
      */
-    public function __construct($targetLogDir = null, $prefix = '', $rotateTimeFormat = 'Y-m-d', $buffer = null, $groupByPrefix = false)
+    public function __construct(
+        $targetLogDir = null,
+        $prefix = '',
+        $rotateTimeFormat = 'Y-m-d',
+        $buffer = null,
+        $groupByPrefix = false,
+        $formatter = null
+    )
     {
         $this->targetLogDir = $targetLogDir;
         $this->setPrefix($prefix);
         $this->ignoreLevel = LogLevel::INFO;
-        $this->showProcessID = false;
         $this->rotateTimeFormat = $rotateTimeFormat;
         $this->buffer = $buffer;
         $this->groupByPrefix = $groupByPrefix;
+
+        if ($formatter === null) {
+            $this->formatter = new ArkLoggerFormatterForSingleLine();
+        } else {
+            $this->formatter = $formatter;
+        }
     }
 
     /**
@@ -120,6 +139,45 @@ class ArkLogger extends AbstractLogger
         $logger = new ArkLogger();
         $logger->silent = true;
         return $logger;
+    }
+
+    /**
+     * @return ArkLogger
+     * @since 2.7.4
+     */
+    public static function getDefaultLogger(): ArkLogger
+    {
+        if (self::$defaultLogger === null) {
+            self::$defaultLogger = new ArkLogger();
+        }
+        return self::$defaultLogger;
+    }
+
+    /**
+     * @param ArkLogger $logger
+     * @since 2.7.4
+     */
+    public static function setDefaultLogger(ArkLogger $logger)
+    {
+        self::$defaultLogger = $logger;
+    }
+
+    /**
+     * @return ArkLoggerAbstractFormatter
+     */
+    public function getFormatter(): ArkLoggerAbstractFormatter
+    {
+        return $this->formatter;
+    }
+
+    /**
+     * @param ArkLoggerAbstractFormatter $formatter
+     * @return ArkLogger
+     */
+    public function setFormatter(ArkLoggerAbstractFormatter $formatter): ArkLogger
+    {
+        $this->formatter = $formatter;
+        return $this;
     }
 
     /**
@@ -200,10 +258,11 @@ class ArkLogger extends AbstractLogger
     /**
      * @param bool $showProcessID
      * @return ArkLogger
+     * @deprecated
      */
     public function setShowProcessID(bool $showProcessID)
     {
-        $this->showProcessID = $showProcessID;
+        $this->formatter->setShowProcessID($showProcessID);
         return $this;
     }
 
@@ -218,20 +277,139 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * @param $message
+     * If you want to output log directly to STDOUT, use this.
+     * @param string $level
+     * @param string $message
+     * @param array $context
      * @return ArkLogger
-     * @since 2.1
-     * Might be used in showing progress
-     * Without any DATE or CONTEXT but raw MESSAGE as string, even no tail/lead space
+     * @since 2.0 renamed from echo to print
+     * @since 2.7.5 The End of Line Enforcement removed
      */
-    public function logInline($message)
+    public function print($level, $message, array $context = array())
     {
-        $target_file = $this->decideTargetFile();
-        if (!$target_file) {
-            echo $message;
+        if ($this->shouldIgnoreThisLog($level)) {
             return $this;
         }
-        @file_put_contents($target_file, $message, FILE_APPEND);
+
+        $msg = $this->formatter->generateLog($level, $message, $context);
+        echo $msg;
+
+        return $this;
+    }
+
+    /**
+     * @param $level
+     * @return bool
+     */
+    protected function shouldIgnoreThisLog($level)
+    {
+        if ($this->silent) return true;
+        return !self::isLevelSeriousEnough($this->ignoreLevel, $level);
+    }
+
+    /**
+     * @param string $leastSeriousLevel the least serious level which is visible
+     * @param string $level
+     * @return bool
+     * @since 2.6.3
+     */
+    public static function isLevelSeriousEnough($leastSeriousLevel, $level)
+    {
+        static $levelValue = [
+            LogLevel::EMERGENCY => self::VALUE_OF_EMERGENCY,
+            LogLevel::ALERT => self::VALUE_OF_ALERT,
+            LogLevel::CRITICAL => self::VALUE_OF_CRITICAL,
+            LogLevel::ERROR => self::VALUE_OF_ERROR,
+            LogLevel::WARNING => self::VALUE_OF_WARNING,
+            LogLevel::NOTICE => self::VALUE_OF_NOTICE,
+            LogLevel::INFO => self::VALUE_OF_INFO,
+            LogLevel::DEBUG => self::VALUE_OF_DEBUG,
+        ];
+        $coming = ArkHelper::readTarget($levelValue, $level, self::VALUE_OF_INFO);
+        $limit = ArkHelper::readTarget($levelValue, $leastSeriousLevel, self::VALUE_OF_DEBUG);
+        return ($coming <= $limit);
+    }
+
+//    /**
+//     * Return the string format log content
+//     * @param $level
+//     * @param $message
+//     * @param string|array $object
+//     * @param bool $enforceEndOfLine @since 2.1
+//     * @param string $logBody @since 2.3
+//     * @return string
+//     * @deprecated use formatter
+//     */
+//    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true, &$logBody = "")
+//    {
+//        $now = date('Y-m-d H:i:s');
+//        $level_string = "[{$level}]";
+//        $logHead = "{$now} {$level_string}";
+//
+//        $logBody = "";
+//        if ($this->showProcessID) {
+//            $logBody .= "PID: " . getmypid() . " ";
+//        }
+//        $logBody .= "{$message} |" . (is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE));
+//
+//        return $logHead . " " . $logBody . ($enforceEndOfLine ? PHP_EOL : "");
+//    }
+
+    /**
+     * @param bool $assert
+     * @param string $messageForTrue
+     * @param array|null $contextForTrue
+     * @param string $messageForFalse
+     * @param array|null $contextForFalse
+     * @param string $levelForTrue
+     * @param string $levelForFalse
+     * @return ArkLogger
+     * @since 2.4 this is a experimental function
+     */
+    public function smartLog($assert, $messageForTrue = "OK", array $contextForTrue = null, $messageForFalse = "ERROR", array $contextForFalse = null, $levelForTrue = LogLevel::INFO, $levelForFalse = LogLevel::ERROR)
+    {
+        if ($assert) {
+            if ($contextForTrue === null) {
+                $contextForTrue = ['assert' => $assert];
+            }
+            $this->log($levelForTrue, $messageForTrue, $contextForTrue);
+        } else {
+            if ($contextForFalse === null) {
+                $contextForFalse = ['assert' => $assert];
+            }
+            $this->log($levelForFalse, $messageForFalse, $contextForFalse);
+        }
+
+        return $this;
+    }
+
+    /**
+     * If enabled buffer, also output to buffer @param mixed $level
+     * @param string $message
+     * @param array $context
+     * @return ArkLogger
+     * @since 2.3
+     */
+    public function log($level, $message, array $context = array())
+    {
+        if ($this->shouldIgnoreThisLog($level)) {
+            return $this;
+        }
+        $msg = $this->formatter->generateLog($level, $message, $context);
+
+        if ($this->buffer !== null) {
+            $this->buffer->appendRaw($level, $this->formatter->getLastLogBody());
+            if ($this->buffer->isBufferOnly()) {
+                return $this;
+            }
+        }
+
+        $target_file = $this->decideTargetFile();
+        if (!$target_file) {
+            echo $msg;
+        } else {
+            @file_put_contents($target_file, $msg, FILE_APPEND);
+        }
         return $this;
     }
 
@@ -296,141 +474,6 @@ class ArkLogger extends AbstractLogger
         }
 
         return $dir . DIRECTORY_SEPARATOR . $file;
-    }
-
-    /**
-     * If you want to output log directly to STDOUT, use this.
-     * @param $level
-     * @param $message
-     * @param array $context
-     * @param bool $enforceEndOfLine @since 2.1
-     * @return ArkLogger
-     * @since 2.0 renamed from echo to print
-     */
-    public function print($level, $message, array $context = array(), $enforceEndOfLine = true)
-    {
-        if ($this->shouldIgnoreThisLog($level)) {
-            return $this;
-        }
-        $msg = $this->generateLog($level, $message, $context, $enforceEndOfLine);
-        echo $msg;
-
-        return $this;
-    }
-
-    /**
-     * @param $level
-     * @return bool
-     */
-    protected function shouldIgnoreThisLog($level)
-    {
-        if ($this->silent) return true;
-        return !self::isLevelSeriousEnough($this->ignoreLevel, $level);
-    }
-
-    /**
-     * @param string $leastSeriousLevel the least serious level which is visible
-     * @param string $level
-     * @return bool
-     * @since 2.6.3
-     */
-    public static function isLevelSeriousEnough($leastSeriousLevel, $level)
-    {
-        static $levelValue = [
-            LogLevel::EMERGENCY => self::VALUE_OF_EMERGENCY,
-            LogLevel::ALERT => self::VALUE_OF_ALERT,
-            LogLevel::CRITICAL => self::VALUE_OF_CRITICAL,
-            LogLevel::ERROR => self::VALUE_OF_ERROR,
-            LogLevel::WARNING => self::VALUE_OF_WARNING,
-            LogLevel::NOTICE => self::VALUE_OF_NOTICE,
-            LogLevel::INFO => self::VALUE_OF_INFO,
-            LogLevel::DEBUG => self::VALUE_OF_DEBUG,
-        ];
-        $coming = ArkHelper::readTarget($levelValue, $level, self::VALUE_OF_INFO);
-        $limit = ArkHelper::readTarget($levelValue, $leastSeriousLevel, self::VALUE_OF_DEBUG);
-        return ($coming <= $limit);
-    }
-
-    /**
-     * Return the string format log content
-     * @param $level
-     * @param $message
-     * @param string|array $object
-     * @param bool $enforceEndOfLine @since 2.1
-     * @param string $logBody @since 2.3
-     * @return string
-     */
-    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true, &$logBody = "")
-    {
-        $now = date('Y-m-d H:i:s');
-        $level_string = "[{$level}]";
-        $logHead = "{$now} {$level_string}";
-
-        $logBody = "";
-        if ($this->showProcessID) {
-            $logBody .= "PID: " . getmypid() . " ";
-        }
-        $logBody .= "{$message} |" . (is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE));
-
-        return $logHead . " " . $logBody . ($enforceEndOfLine ? PHP_EOL : "");
-    }
-
-    /**
-     * @param bool $assert
-     * @param string $messageForTrue
-     * @param array|null $contextForTrue
-     * @param string $messageForFalse
-     * @param array|null $contextForFalse
-     * @param string $levelForTrue
-     * @param string $levelForFalse
-     * @return ArkLogger
-     * @since 2.4 this is a experimental function
-     */
-    public function smartLog($assert, $messageForTrue = "OK", array $contextForTrue = null, $messageForFalse = "ERROR", array $contextForFalse = null, $levelForTrue = LogLevel::INFO, $levelForFalse = LogLevel::ERROR)
-    {
-        if ($assert) {
-            if ($contextForTrue === null) {
-                $contextForTrue = ['assert' => $assert];
-            }
-            $this->log($levelForTrue, $messageForTrue, $contextForTrue);
-        } else {
-            if ($contextForFalse === null) {
-                $contextForFalse = ['assert' => $assert];
-            }
-            $this->log($levelForFalse, $messageForFalse, $contextForFalse);
-        }
-
-        return $this;
-    }
-
-    /**
-     * If enabled buffer, also output to buffer @param mixed $level
-     * @param string $message
-     * @param array $context
-     * @return ArkLogger
-     * @since 2.3
-     */
-    public function log($level, $message, array $context = array())
-    {
-        if ($this->shouldIgnoreThisLog($level)) {
-            return $this;
-        }
-        $msg = $this->generateLog($level, $message, $context, true, $body);
-
-        if ($this->buffer !== null) {
-            $this->buffer->appendRaw($level, $body);
-            if ($this->buffer->isBufferOnly()) {
-                return $this;
-            }
-        }
-
-        $target_file = $this->decideTargetFile();
-        if (!$target_file) {
-            echo $msg;
-        } else {
-            @file_put_contents($target_file, $msg, FILE_APPEND);
-        }
-        return $this;
     }
 
     /**
@@ -541,29 +584,21 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * @var ArkLogger
-     * @since 2.7.4
-     */
-    private static $defaultLogger;
-
-    /**
+     * Directly output string to target
+     * @param string $message
      * @return ArkLogger
-     * @since 2.7.4
+     * @since 2.1
+     * Might be used in showing progress
+     * Without any DATE or CONTEXT but raw MESSAGE as string, even no tail/lead space
      */
-    public static function getDefaultLogger(): ArkLogger
+    public function logInline(string $message)
     {
-        if (self::$defaultLogger === null) {
-            self::$defaultLogger = new ArkLogger();
+        $target_file = $this->decideTargetFile();
+        if (!$target_file) {
+            echo $message;
+            return $this;
         }
-        return self::$defaultLogger;
-    }
-
-    /**
-     * @param ArkLogger $logger
-     * @since 2.7.4
-     */
-    public static function setDefaultLogger(ArkLogger $logger)
-    {
-        self::$defaultLogger = $logger;
+        @file_put_contents($target_file, $message, FILE_APPEND);
+        return $this;
     }
 }

@@ -9,6 +9,7 @@
 use Psr\Log\LogLevel;
 use sinri\ark\core\ArkLogger;
 use sinri\ark\core\ArkLoggerBuffer;
+use sinri\ark\core\ArkLoggerFormatterForJsonLine;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 //require_once __DIR__ . '/../autoload.php';
@@ -54,3 +55,8 @@ $logger = new ArkLogger(__DIR__ . '/log', '', 'Ymd', null, true);
 $logger->info("without prefix");
 $logger = new ArkLogger(__DIR__ . '/log', 'x', 'Ymd', null, true);
 $logger->info("with prefix");
+
+// 2.7.5
+
+$logger = (new ArkLogger())->setFormatter(new ArkLoggerFormatterForJsonLine());
+$logger->info('Dogs died.', ['names' => null]);
