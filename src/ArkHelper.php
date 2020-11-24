@@ -370,8 +370,8 @@ class ArkHelper
                 $string .= "[$index] Which is called by " . PHP_EOL;
             }
             //$string .= "Called by ". $index.' th caller'.PHP_EOL;
-            $string .= "\tLocation: " . $item['file'] . '@' . $item['line'] . PHP_EOL;
-            $string .= "\tMethod: " . $item['class'] . $item['type'] . $item['function'] . PHP_EOL;
+            $string .= "\tLocation: " . ArkHelper::readTarget($item, ['file'], '?') . '@' . ArkHelper::readTarget($item, ['line'], '?') . PHP_EOL;
+            $string .= "\tMethod: " . ArkHelper::readTarget($item, ['class'], '?') . ArkHelper::readTarget($item, ['type'], '?') . ArkHelper::readTarget($item, ['function'], '?') . PHP_EOL;
             if (isset($item['args']) && !empty($item['args'])) {
                 $string .= "\tArguments: ";
                 //. implode(',', $item['args']) . PHP_EOL;
