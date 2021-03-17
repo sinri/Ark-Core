@@ -4,8 +4,9 @@
 namespace sinri\ark\core\entity;
 
 
-use Exception;
 use sinri\ark\core\ArkHelper;
+use sinri\ark\core\Exception\NotADirectoryException;
+use sinri\ark\core\Exception\NotAValidPathException;
 
 /**
  * Class ArkFileSystemItemEntity
@@ -69,12 +70,13 @@ class ArkFileSystemItemEntity
 
     /**
      * @return ArkFileSystemItemEntity[]
-     * @throws Exception
+     * @throws NotADirectoryException
+     * @throws NotAValidPathException
      */
     public function getChildren()
     {
         if ($this->itemType !== self::TYPE_DIR) {
-            throw new Exception("Not a dir");
+            throw new NotADirectoryException("Not a dir");
         }
         $list = [];
         $handle = opendir($this->getFullPath());
@@ -87,15 +89,15 @@ class ArkFileSystemItemEntity
     }
 
     /**
-     * @param $fullPath
+     * @param string $fullPath
      * @return ArkFileSystemItemEntity
-     * @throws Exception
+     * @throws NotAValidPathException
      */
     public static function buildWithFullPath($fullPath)
     {
         $fullPath = realpath($fullPath);
         if (!$fullPath) {
-            throw new Exception("It seems not a correct and existing path");
+            throw new NotAValidPathException("It seems not a correct and existing path");
         }
 
         $entity = new ArkFileSystemItemEntity();

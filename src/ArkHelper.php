@@ -8,8 +8,8 @@
 
 namespace sinri\ark\core;
 
-
-use Exception;
+use sinri\ark\core\Exception\EnsureItemException;
+use sinri\ark\core\Exception\LookUpTargetException;
 
 class ArkHelper
 {
@@ -65,7 +65,7 @@ class ArkHelper
      * @param string|int|array $keychain
      * @param mixed $default
      * @param null|String $regex
-     * @param null|Exception $exception
+     * @param null|LookUpTargetException $exception
      * @return mixed
      */
     public static function readTarget($target, $keychain, $default = null, $regex = null, &$exception = null)
@@ -82,13 +82,13 @@ class ArkHelper
                 if (key_exists($keychain, $target)) {
                     $value = $target[$keychain];
                     if ($regex !== null && !preg_match($regex, $value)) {
-                        $exception = new Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
+                        $exception = new LookUpTargetException("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
                         return $default;
                     }
                     $exception = null;
                     return $value;
                 } else {
-                    $exception = new Exception("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
+                    $exception = new LookUpTargetException("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
                     return $default;
                 }
             }
@@ -104,19 +104,19 @@ class ArkHelper
                 if (property_exists($target, $keychain)) {
                     $value = $target->$keychain;
                     if ($regex !== null && !preg_match($regex, $value)) {
-                        $exception = new Exception("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
+                        $exception = new LookUpTargetException("REGEX_NOT_MATCH", self::READ_TARGET_REGEX_NOT_MATCH);
                         return $default;
                     }
                     $exception = null;
                     return $value;
                 } else {
-                    $exception = new Exception("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
+                    $exception = new LookUpTargetException("FIELD_NOT_FOUND", self::READ_TARGET_FIELD_NOT_FOUND);
                     return $default;
                 }
             }
         } else {
             // not array nor object
-            $exception = new Exception("SOURCE_ERROR", self::READ_TARGET_SOURCE_ERROR);
+            $exception = new LookUpTargetException("SOURCE_ERROR", self::READ_TARGET_SOURCE_ERROR);
             return $default;
         }
     }
@@ -213,40 +213,31 @@ class ArkHelper
     const ASSERT_TYPE_NOT_FALSE = 0b100;
 
     /**
-     * @param $object
-     * @param null $exception_message
+     * @param mixed $object
+     * @param string $exception_message
      * @param int $type
-     * @throws Exception
+     * @throws EnsureItemException
      */
     public static function assertItem($object, $exception_message = null, $type = self::ASSERT_TYPE_NOT_EMPTY)
     {
-        try {
-            if (($type & 0b100) > 0 && $object === false) {
-                throw new Exception();
-            }
-            if (($type & 0b10) > 0 && $object === null) {
-                throw new Exception();
-            }
-            if (($type & 0b1) > 0 && empty($object)) {
-                throw new Exception();
-            }
-            $exception_message = null;
-        } catch (Exception $exception) {
-            throw new Exception($exception_message === null ? __FUNCTION__ : $exception_message);
+        if ($exception_message === null) {
+            $exception_message = __FUNCTION__;
+        }
+        if (($type & 0b100) > 0 && $object === false) {
+            throw new EnsureItemException($exception_message);
+        }
+        if (($type & 0b10) > 0 && $object === null) {
+            throw new EnsureItemException($exception_message);
+        }
+        if (($type & 0b1) > 0 && empty($object)) {
+            throw new EnsureItemException($exception_message);
         }
     }
 
     /**
      * @param string $error
-     * @param array ...$parameters
-     * @throws Exception
-     * @since 0.11
-     */
-
-    /**
-     * @param string $error
      * @param mixed ...$parameters
-     * @throws Exception
+     * @throws EnsureItemException
      */
     public static function quickNotEmptyAssert($error, ...$parameters)
     {

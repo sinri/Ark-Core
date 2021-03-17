@@ -221,7 +221,7 @@ class ArkString
      */
     public function crypt($salt = null)
     {
-        return crypt($this->string, $salt = null);
+        return crypt($this->string, $salt);
     }
 
     /**
