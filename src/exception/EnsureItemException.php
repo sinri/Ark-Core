@@ -1,7 +1,7 @@
 <?php
 
 
-namespace sinri\ark\core\Exception;
+namespace sinri\ark\core\exception;
 
 
 use Exception;

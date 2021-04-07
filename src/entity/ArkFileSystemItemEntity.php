@@ -5,8 +5,8 @@ namespace sinri\ark\core\entity;
 
 
 use sinri\ark\core\ArkHelper;
-use sinri\ark\core\Exception\NotADirectoryException;
-use sinri\ark\core\Exception\NotAValidPathException;
+use sinri\ark\core\exception\NotADirectoryException;
+use sinri\ark\core\exception\NotAValidPathException;
 
 /**
  * Class ArkFileSystemItemEntity

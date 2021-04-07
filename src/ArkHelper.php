@@ -8,8 +8,8 @@
 
 namespace sinri\ark\core;
 
-use sinri\ark\core\Exception\EnsureItemException;
-use sinri\ark\core\Exception\LookUpTargetException;
+use sinri\ark\core\exception\EnsureItemException;
+use sinri\ark\core\exception\LookUpTargetException;
 
 class ArkHelper
 {
