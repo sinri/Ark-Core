@@ -40,3 +40,13 @@ echo '-----' . PHP_EOL;
 $y = (new ArkArray());
 echo $y->push('x1')->push('x2')->push('x3')->pop() . PHP_EOL;
 var_dump($y->getRawArray());
+
+echo '-----' . PHP_EOL;
+
+$z = (new ArkArray());
+$z->append(['a', 'b', 'c'], 'I')
+    ->append(['a', 'b', 'c'], 'II')
+    ->append(['a', 'b', 'c'], 'III');
+//$z->write(['a','b','c','d'],'e');
+$z->append(['a', 'b', 'c'], 'V');
+echo json_encode($z->getRawArray()) . PHP_EOL;

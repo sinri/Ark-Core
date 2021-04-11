@@ -5,6 +5,7 @@ namespace sinri\ark\core;
 
 
 use Iterator;
+use phpDocumentor\Reflection\Types\Scalar;
 
 /**
  * Class ArkArray
@@ -520,4 +521,22 @@ class ArkArray implements Iterator
         return $this;
     }
 
+    /**
+     * @param scalar|array $keychainForTargetSubArray
+     * @param mixed $value
+     * @since 2.7.11
+     */
+    public function append($keychainForTargetSubArray, $value)
+    {
+        if (!is_array($keychainForTargetSubArray)) {
+            $keychainForTargetSubArray = [$keychainForTargetSubArray];
+        }
+        $existed = $this->read($keychainForTargetSubArray);
+        if ($existed === null) {
+            $keychainForTargetSubArray[] = 0;
+        } else {
+            $keychainForTargetSubArray[] = count($existed);
+        }
+        return $this->write($keychainForTargetSubArray, $value);
+    }
 }
