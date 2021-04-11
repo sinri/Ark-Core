@@ -524,7 +524,7 @@ class ArkArray implements Iterator
     /**
      * @param scalar|array $keychainForTargetSubArray
      * @param mixed $value
-     * @since 2.7.11
+     * @since 2.7.12
      */
     public function append($keychainForTargetSubArray, $value)
     {
