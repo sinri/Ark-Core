@@ -21,10 +21,13 @@ class ArkArray implements Iterator
 
     /**
      * ArkArray constructor.
-     * @param array $array The array is a reference
+     * @param array $array The array is a reference, or NULL to automatically create one array since 2.7.11
      */
-    public function __construct(&$array)
+    public function __construct(&$array = null)
     {
+        if ($array === null) {
+            $array = [];
+        }
         $this->array =& $array;
     }
 

@@ -34,3 +34,9 @@ var_dump($array);
 
 
 echo json_encode($a->getRawArray() === $array) . PHP_EOL;
+
+echo '-----' . PHP_EOL;
+
+$y = (new ArkArray());
+echo $y->push('x1')->push('x2')->push('x3')->pop() . PHP_EOL;
+var_dump($y->getRawArray());
