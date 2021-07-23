@@ -41,11 +41,15 @@ class ArkLogger extends AbstractLogger
      */
     protected $targetLogDir = null;
     /**
-     * @var string|callable
-     * A string, or a callable like
-     * function() : string
+     * @var string
+     * A string or an implementation of ArkLoggerPrefixBuilderInterface
+     * @since 2.7.13 callable is replaced by ArkLoggerPrefixBuilderInterface
      */
-    protected $prefix = '';
+    protected $rawPrefix = '';
+    /**
+     * @var ArkLoggerPrefixBuilderInterface|null
+     */
+    protected $prefixBuilder = null;
     /**
      * @var string values as LogLevel::LEVEL
      */
@@ -79,7 +83,7 @@ class ArkLogger extends AbstractLogger
     /**
      * ArkLogger constructor.
      * @param string|null $targetLogDir null for write to STDOUT
-     * @param string|callable $prefix
+     * @param string $prefix
      * @param string|null $rotateTimeFormat string should follow Date Format, and null for no rotating @since 2.2
      * @param null|ArkLoggerAbstractBuffer $buffer if null, buffer off @since 2.3 @since 2.6 switched to ArkLoggerAbstractBuffer
      * @param bool $groupByPrefix If true, the log files with same prefix would be put into a directory named with prefix
@@ -95,7 +99,7 @@ class ArkLogger extends AbstractLogger
     )
     {
         $this->targetLogDir = $targetLogDir;
-        $this->setPrefix($prefix);
+        $this->rawPrefix = $prefix;
         $this->ignoreLevel = LogLevel::INFO;
         $this->rotateTimeFormat = $rotateTimeFormat;
         $this->buffer = $buffer;
@@ -106,29 +110,6 @@ class ArkLogger extends AbstractLogger
         } else {
             $this->formatter = $formatter;
         }
-    }
-
-    /**
-     * @param string|callable $prefix
-     * @return ArkLogger
-     */
-    public function setPrefix($prefix)
-    {
-
-        if (is_callable($prefix)) {
-            $this->prefix = $prefix;
-        } elseif ($prefix !== '') {
-            $prefix = self::normalizePrefix($prefix);
-            // Observed case that forked child process would die here, reason unknown
-        }
-        $this->prefix = $prefix;
-
-        return $this;
-    }
-
-    public static function normalizePrefix($rawPrefix)
-    {
-        return preg_replace('/[^A-Za-z0-9]/', '_', $rawPrefix);
     }
 
     /**
@@ -161,6 +142,69 @@ class ArkLogger extends AbstractLogger
     {
         self::$defaultLogger = $logger;
     }
+
+    /**
+     * @return string
+     */
+    public function getRawPrefix(): string
+    {
+        return $this->rawPrefix;
+    }
+
+    /**
+     * @param string $rawPrefix
+     * @return ArkLogger
+     */
+    public function setRawPrefix(string $rawPrefix): ArkLogger
+    {
+        $this->rawPrefix = $rawPrefix;
+        return $this;
+    }
+
+    /**
+     * @return ArkLoggerPrefixBuilderInterface|null
+     */
+    public function getPrefixBuilder(): ArkLoggerPrefixBuilderInterface
+    {
+        return $this->prefixBuilder;
+    }
+
+    /**
+     * @param ArkLoggerPrefixBuilderInterface|null $prefixBuilder
+     * @return ArkLogger
+     */
+    public function setPrefixBuilder(ArkLoggerPrefixBuilderInterface $prefixBuilder): ArkLogger
+    {
+        $this->prefixBuilder = $prefixBuilder;
+        return $this;
+    }
+
+    /**
+     * @param string|ArkLoggerPrefixBuilderInterface $prefix
+     * @return ArkLogger
+     * @since 2.7.13 callable is replaced by ArkLoggerPrefixBuilderInterface
+     * @deprecated use setRawPrefix or setPrefixBuilder instead
+     */
+    public function setPrefix($prefix)
+    {
+        if (is_string($prefix)) {
+            $this->rawPrefix = $prefix;
+        }
+        if (is_a($prefix, ArkLoggerPrefixBuilderInterface::class)) {
+            $this->rawPrefix = $prefix;
+        }
+
+//        if (is_callable($prefix)) {
+//            $this->prefix = $prefix;
+//        } elseif ($prefix !== '') {
+//            $prefix = self::normalizePrefix($prefix,$this->groupByPrefix);
+//            // Observed case that forked child process would die here, reason unknown
+//        }
+//        $this->prefix = $prefix;
+
+        return $this;
+    }
+
 
     /**
      * @return ArkLoggerAbstractFormatter
@@ -330,31 +374,6 @@ class ArkLogger extends AbstractLogger
         return ($coming <= $limit);
     }
 
-//    /**
-//     * Return the string format log content
-//     * @param $level
-//     * @param $message
-//     * @param string|array $object
-//     * @param bool $enforceEndOfLine @since 2.1
-//     * @param string $logBody @since 2.3
-//     * @return string
-//     * @deprecated use formatter
-//     */
-//    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true, &$logBody = "")
-//    {
-//        $now = date('Y-m-d H:i:s');
-//        $level_string = "[{$level}]";
-//        $logHead = "{$now} {$level_string}";
-//
-//        $logBody = "";
-//        if ($this->showProcessID) {
-//            $logBody .= "PID: " . getmypid() . " ";
-//        }
-//        $logBody .= "{$message} |" . (is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE));
-//
-//        return $logHead . " " . $logBody . ($enforceEndOfLine ? PHP_EOL : "");
-//    }
-
     /**
      * @param bool $assert
      * @param string $messageForTrue
@@ -382,6 +401,31 @@ class ArkLogger extends AbstractLogger
 
         return $this;
     }
+
+//    /**
+//     * Return the string format log content
+//     * @param $level
+//     * @param $message
+//     * @param string|array $object
+//     * @param bool $enforceEndOfLine @since 2.1
+//     * @param string $logBody @since 2.3
+//     * @return string
+//     * @deprecated use formatter
+//     */
+//    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true, &$logBody = "")
+//    {
+//        $now = date('Y-m-d H:i:s');
+//        $level_string = "[{$level}]";
+//        $logHead = "{$now} {$level_string}";
+//
+//        $logBody = "";
+//        if ($this->showProcessID) {
+//            $logBody .= "PID: " . getmypid() . " ";
+//        }
+//        $logBody .= "{$message} |" . (is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE));
+//
+//        return $logHead . " " . $logBody . ($enforceEndOfLine ? PHP_EOL : "");
+//    }
 
     /**
      * If enabled buffer, also output to buffer @param mixed $level
@@ -435,6 +479,8 @@ class ArkLogger extends AbstractLogger
      * @return string|false it returns FALSE when the logger has to output to STDOUT directly
      * @since 2.2
      * @since 2.5 Add group by prefix support
+     * @since 2.7.13 callable is replaced by ArkLoggerPrefixBuilderInterface
+     * @since 2.7.13 nested directory is allowed
      */
     public function getCurrentLogFilePath()
     {
@@ -447,14 +493,25 @@ class ArkLogger extends AbstractLogger
             $rotateTimeMark .= "-" . date($this->rotateTimeFormat);
         }
 
-        if (is_callable($this->prefix)) {
-            $prefix = call_user_func_array($this->prefix, []);
-            // [del]not check prefix here, let user ensure this correctness[/del]
-            $prefix = self::normalizePrefix($prefix);
-            // I thought again and add this check...
+        if ($this->prefixBuilder !== null) {
+            // as ArkLoggerPrefixBuilderInterface
+            $prefix = self::normalizePrefix($this->prefixBuilder->buildPrefix(), $this->groupByPrefix);
         } else {
-            $prefix = $this->prefix;
+            $prefix = self::normalizePrefix($this->rawPrefix, $this->groupByPrefix);
         }
+
+//        if (is_callable($this->prefix)) {
+//            // Notice when developing 2.7.13:
+//            // We used `_` to replace all illegal characters, bu a single `_` is an alias of function `gettext`.
+//            // see https://www.php.net/manual/en/function.gettext.php
+//
+//            $prefix = call_user_func_array($this->prefix, []);
+//            // [del]not check prefix here, let user ensure this correctness[/del]
+//            $prefix = self::normalizePrefix($prefix,$this->groupByPrefix);
+//            // I thought again and add this check...
+//        } else {
+//            $prefix = $this->prefix;
+//        }
 
         $dir = $this->targetLogDir;
         $file = 'log' . (empty($prefix) ? '' : "-" . $prefix) . $rotateTimeMark . '.log';
@@ -464,8 +521,25 @@ class ArkLogger extends AbstractLogger
                 $dir = $this->targetLogDir . DIRECTORY_SEPARATOR . 'default-log';
                 $file = 'log' . $rotateTimeMark . '.log';
             } else {
-                $dir = $this->targetLogDir . DIRECTORY_SEPARATOR . $prefix;
-                $file = 'log' . "-" . $prefix . $rotateTimeMark . '.log';
+                // Since 2.7.13
+                // before: prefix a/b/c -> DIR/a/b/c/log-c-YMD.log
+                // as of: prefix a/b/c -> DIR/a_b_c/log-a_b_c-YMD.log
+
+                $components = explode('/', $prefix);
+                $components = array_filter($components);
+                if (count($components) === 1) {
+                    $prefix = $components[0];
+                    $dir = $this->targetLogDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $components);
+                    $file = 'log' . "-" . $prefix . $rotateTimeMark . '.log';
+                } elseif (count($components) > 1) {
+                    $pathComponents = array_slice($components, 0, -1);
+                    $prefixComponents = array_slice($components, -1, 1);
+                    $dir = $this->targetLogDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $pathComponents);
+                    $file = 'log' . "-" . $prefixComponents[0] . $rotateTimeMark . '.log';
+                } else {
+                    $dir = $this->targetLogDir . DIRECTORY_SEPARATOR . 'default-log';
+                    $file = 'log' . $rotateTimeMark . '.log';
+                }
             }
         }
 
@@ -474,6 +548,21 @@ class ArkLogger extends AbstractLogger
         }
 
         return $dir . DIRECTORY_SEPARATOR . $file;
+    }
+
+    /**
+     * @param string $rawPrefix
+     * @param bool $groupByPrefix
+     * @return array|string|string[]|null
+     * @since 2.7.13 add group by prefix switch
+     */
+    public static function normalizePrefix(string $rawPrefix, bool $groupByPrefix)
+    {
+        // Since 2.7.13 let `/` be kept when group prefix function is enabled
+        if ($groupByPrefix) {
+            return preg_replace('/[^A-Za-z0-9\/]/', '_', $rawPrefix);
+        }
+        return preg_replace('/[^A-Za-z0-9]/', '_', $rawPrefix);
     }
 
     /**
