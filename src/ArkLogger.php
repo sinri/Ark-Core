@@ -184,14 +184,15 @@ class ArkLogger extends AbstractLogger
      * @return ArkLogger
      * @since 2.7.13 callable is replaced by ArkLoggerPrefixBuilderInterface
      * @deprecated use setRawPrefix or setPrefixBuilder instead
+     * @since 2.7.14 Fix bug when prefix is not a string
      */
     public function setPrefix($prefix)
     {
         if (is_string($prefix)) {
-            $this->rawPrefix = $prefix;
+            $this->setRawPrefix($prefix);
         }
         if (is_a($prefix, ArkLoggerPrefixBuilderInterface::class)) {
-            $this->rawPrefix = $prefix;
+            $this->setPrefixBuilder($prefix);
         }
 
 //        if (is_callable($prefix)) {
