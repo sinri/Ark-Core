@@ -164,7 +164,7 @@ class ArkLogger extends AbstractLogger
     /**
      * @return ArkLoggerPrefixBuilderInterface|null
      */
-    public function getPrefixBuilder(): ArkLoggerPrefixBuilderInterface
+    public function getPrefixBuilder()
     {
         return $this->prefixBuilder;
     }
@@ -173,7 +173,7 @@ class ArkLogger extends AbstractLogger
      * @param ArkLoggerPrefixBuilderInterface|null $prefixBuilder
      * @return ArkLogger
      */
-    public function setPrefixBuilder(ArkLoggerPrefixBuilderInterface $prefixBuilder): ArkLogger
+    public function setPrefixBuilder($prefixBuilder): ArkLogger
     {
         $this->prefixBuilder = $prefixBuilder;
         return $this;
