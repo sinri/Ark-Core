@@ -8,7 +8,7 @@ use Exception;
 
 /**
  * Class NotAValidPathException
- * @package sinri\ark\core\Exception
+ * @package sinri\ark\core\exception
  * @since 2.7.9
  */
 class NotAValidPathException extends Exception
