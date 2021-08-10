@@ -621,11 +621,13 @@ class ArkLogger extends AbstractLogger
      * @param string $errStr
      * @param string $errFile
      * @param int $errLine
+     * @param bool $showBacktrace
      * @return ArkLogger
      * @since 2.7.2
      * @since 2.7.7 Add Context Parameter of record process info to the debug log
+     * @since 2.7.16 add `$showBacktrace` and default as true
      */
-    public function logErrorInHandler(int $errNo, string $errStr, string $errFile, int $errLine)
+    public function logErrorInHandler(int $errNo, string $errStr, string $errFile, int $errLine, bool $showBacktrace = true)
     {
         $systemErrorTypeName = 'UnknownError';
         $systemErrorExpression = $errFile . '@' . $errLine . ' ' . $errStr;
@@ -671,7 +673,9 @@ class ArkLogger extends AbstractLogger
                 $this->error($systemErrorTypeName . ' ' . $systemErrorExpression, $context);
                 break;
         }
-        $this->logInline(ArkHelper::getDebugBacktraceString() . PHP_EOL);
+        if ($showBacktrace) {
+            $this->logInline(ArkHelper::getDebugBacktraceString() . PHP_EOL);
+        }
         return $this;
     }
 

@@ -383,12 +383,28 @@ class ArkHelper
      * @param bool $takeErrorAsFixed 如果函数返回 FALSE，标准错误处理处理程序将会继续调用。
      * @return callable|null
      * @since 2.7.2
+     * @since 2.7.16 Make it more friendly for ArkCache using FILE SYSTEM
      */
     public static function registerErrorHandlerForLogging(ArkLogger $logger, $level = E_ALL | E_STRICT, $takeErrorAsFixed = false)
     {
         return set_error_handler(
             function (int $errNo, string $errStr, string $errFile, int $errLine) use ($takeErrorAsFixed, $logger) {
-                $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine);
+                $showBackTrace = true;
+
+                if ($errNo === E_WARNING) {
+                    if (false !== strpos($errStr, 'ArkFileCache')) {
+                        if (false !== strpos($errStr, 'No such file or directory')) {
+                            if (
+                                false !== strpos($errStr, 'unlink')
+                                || false !== strpos($errStr, 'file_get_contents')
+                            ) {
+                                $showBackTrace = false;
+                            }
+                        }
+                    }
+                }
+
+                $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine, $showBackTrace);
                 return $takeErrorAsFixed;
             },
             $level
