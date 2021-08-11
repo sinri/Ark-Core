@@ -127,11 +127,12 @@ class ArkHelper
      * @return int
      * @throws LookUpTargetException
      * @since 2.7.17
+     * @since 2.7.19 Fix 2.7.17
      */
     public static function readTargetForInteger($target, $keychain): int
     {
         $x = self::readTarget($target, $keychain);
-        if (!is_numeric($x) || preg_match('/^[+-]?\d+$/', $x) === false) {
+        if (!is_numeric($x) || preg_match('/^[+-]?\d+$/', $x) !== 1) {
             throw new LookUpTargetException("Cannot read integer from target with keychain");
         }
         return intval($x);
