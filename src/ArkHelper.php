@@ -416,6 +416,7 @@ class ArkHelper
      * @return callable|null
      * @since 2.7.2
      * @since 2.7.16 Make it more friendly for ArkCache using FILE SYSTEM
+     * @since 2.7.18 Fix bug in 2.7.16 (mistake $errStr for $errFile)
      */
     public static function registerErrorHandlerForLogging(ArkLogger $logger, $level = E_ALL | E_STRICT, $takeErrorAsFixed = false)
     {
@@ -424,7 +425,7 @@ class ArkHelper
                 $showBackTrace = true;
 
                 if ($errNo === E_WARNING) {
-                    if (false !== strpos($errStr, 'ArkFileCache')) {
+                    if (false !== strpos($errFile, 'ArkFileCache')) {
                         if (false !== strpos($errStr, 'No such file or directory')) {
                             if (
                                 false !== strpos($errStr, 'unlink')
