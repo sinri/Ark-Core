@@ -122,6 +122,38 @@ class ArkHelper
     }
 
     /**
+     * @param object|array $target
+     * @param string|int|array $keychain
+     * @return int
+     * @throws LookUpTargetException
+     * @since 2.7.17
+     */
+    public static function readTargetForInteger($target, $keychain): int
+    {
+        $x = self::readTarget($target, $keychain);
+        if (!is_numeric($x) || preg_match('/^[+-]?\d+$/', $x) === false) {
+            throw new LookUpTargetException("Cannot read integer from target with keychain");
+        }
+        return intval($x);
+    }
+
+    /**
+     * @param object|array $target
+     * @param string|int|array $keychain
+     * @return float
+     * @throws LookUpTargetException
+     * @since 2.7.17
+     */
+    public static function readTargetForFloat($target, $keychain): float
+    {
+        $x = self::readTarget($target, $keychain);
+        if (!is_numeric($x)) {
+            throw new LookUpTargetException("Cannot read float from target with keychain");
+        }
+        return floatval($x);
+    }
+
+    /**
      * @param array $array
      * @param array|string|int $keychain
      * @param mixed $value
