@@ -26,8 +26,7 @@ class ArkHelper
         if (strpos($class_name, $base_namespace) === 0) {
             $class_file = str_replace($base_namespace, $base_path, $class_name);
             $class_file .= $extension;
-            $class_file = str_replace('\\', '/', $class_file);
-            return $class_file;
+            return str_replace('\\', '/', $class_file);
         }
         return null;
     }
@@ -49,7 +48,6 @@ class ArkHelper
                 $extension
             );
             if ($file_path) {
-                /** @noinspection PhpIncludeInspection */
                 require_once $file_path;
             }
         });
