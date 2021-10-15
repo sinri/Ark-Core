@@ -451,4 +451,17 @@ class ArkHelper
     {
         restore_error_handler();
     }
+
+    /**
+     * @param object $object
+     * @param string $trait TRAIT::class
+     * @return bool
+     * @since 2.7.21
+     */
+    public static function usingTrait($object, $trait)
+    {
+        if (!is_object($object)) return false;
+        $x = class_uses(get_class($object));
+        return in_array($trait, $x);
+    }
 }
