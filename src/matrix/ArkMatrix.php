@@ -126,7 +126,7 @@ class ArkMatrix
 
     public function insertColumn(array $column, int $columnIndex, string $columnName)
     {
-        if ($columnIndex === null) {
+        if ($columnIndex == 0) {
             array_unshift($this->columnNameList, $columnName);
             foreach ($this->matrixData as $rowIndex => &$matrixDatum) {
                 array_unshift($matrixDatum, $column[$rowIndex]);
@@ -134,7 +134,7 @@ class ArkMatrix
         } else {
             array_splice($this->columnNameList, $columnIndex, 0, [$columnName]);
             foreach ($this->matrixData as $rowIndex => &$matrixDatum) {
-                array_unshift($matrixDatum, $column[$rowIndex]);
+                array_splice($matrixDatum, $columnIndex, 0, [$column[$rowIndex]]);
             }
         }
         return $this;
