@@ -112,9 +112,9 @@ class ArkMatrix
 
     public function updateColumn(array $column, int $columnIndex, string $columnName = null)
     {
-        if ($columnIndex === null) {
-            $columnIndex = count($this->columnNameList);
-        }
+//        if ($columnIndex === null) {
+//            $columnIndex = count($this->columnNameList);
+//        }
         foreach ($this->matrixData as $rowIndex => &$matrixDatum) {
             $matrixDatum[$columnIndex] = $column[$rowIndex];
         }
@@ -154,7 +154,7 @@ class ArkMatrix
     public function getSubMatrix(array $columnIndices, ArkMatrixColumnCriterion $criteria)
     {
         $resultMatrixData = [];
-        foreach ($this->matrixData as $rowIndex => $matrixDatum) {
+        foreach ($this->matrixData as $matrixDatum) {
             if ($criteria->computedResult([$matrixDatum, $this->columnNameList])) {
                 $row = [];
                 foreach ($columnIndices as $columnIndex) {

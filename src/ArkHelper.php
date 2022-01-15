@@ -434,22 +434,7 @@ class ArkHelper
                     return false; // Silenced
                 }
 
-                $showBackTrace = true;
-
-//                if ($errNo === E_WARNING) {
-//                    if (false !== strpos($errFile, 'ArkFileCache')) {
-//                        if (false !== strpos($errStr, 'No such file or directory')) {
-//                            if (
-//                                false !== strpos($errStr, 'unlink')
-//                                || false !== strpos($errStr, 'file_get_contents')
-//                            ) {
-//                                $showBackTrace = false;
-//                            }
-//                        }
-//                    }
-//                }
-
-                $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine, $showBackTrace);
+                $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine);
                 return $takeErrorAsFixed;
             },
             $level

@@ -384,7 +384,7 @@ class ArkLogger extends AbstractLogger
      * @param string $levelForTrue
      * @param string $levelForFalse
      * @return ArkLogger
-     * @since 2.4 this is a experimental function
+     * @since 2.4 this is an experimental function
      */
     public function smartLog($assert, $messageForTrue = "OK", array $contextForTrue = null, $messageForFalse = "ERROR", array $contextForFalse = null, $levelForTrue = LogLevel::INFO, $levelForFalse = LogLevel::ERROR)
     {
@@ -402,31 +402,6 @@ class ArkLogger extends AbstractLogger
 
         return $this;
     }
-
-//    /**
-//     * Return the string format log content
-//     * @param $level
-//     * @param $message
-//     * @param string|array $object
-//     * @param bool $enforceEndOfLine @since 2.1
-//     * @param string $logBody @since 2.3
-//     * @return string
-//     * @deprecated use formatter
-//     */
-//    protected function generateLog($level, $message, $object = '', $enforceEndOfLine = true, &$logBody = "")
-//    {
-//        $now = date('Y-m-d H:i:s');
-//        $level_string = "[{$level}]";
-//        $logHead = "{$now} {$level_string}";
-//
-//        $logBody = "";
-//        if ($this->showProcessID) {
-//            $logBody .= "PID: " . getmypid() . " ";
-//        }
-//        $logBody .= "{$message} |" . (is_string($object) ? $object : json_encode($object, JSON_UNESCAPED_UNICODE));
-//
-//        return $logHead . " " . $logBody . ($enforceEndOfLine ? PHP_EOL : "");
-//    }
 
     /**
      * If enabled buffer, also output to buffer @param mixed $level
@@ -476,7 +451,7 @@ class ArkLogger extends AbstractLogger
     }
 
     /**
-     * Sometime you may need to know where the log file is
+     * Sometimes you may need to know where the log file is
      * @return string|false it returns FALSE when the logger has to output to STDOUT directly
      * @since 2.2
      * @since 2.5 Add group by prefix support
@@ -503,7 +478,7 @@ class ArkLogger extends AbstractLogger
 
 //        if (is_callable($this->prefix)) {
 //            // Notice when developing 2.7.13:
-//            // We used `_` to replace all illegal characters, bu a single `_` is an alias of function `gettext`.
+//            // We used `_` to replace all illegal characters, but a single `_` is an alias of function `gettext`.
 //            // see https://www.php.net/manual/en/function.gettext.php
 //
 //            $prefix = call_user_func_array($this->prefix, []);
@@ -571,7 +546,7 @@ class ArkLogger extends AbstractLogger
      * @param string $message
      * @param array $context
      * @return ArkLogger
-     * @since 2.4 this is a experimental function
+     * @since 2.4 this is an experimental function
      */
     public function smartLogLite($assert, $message = "", array $context = [])
     {

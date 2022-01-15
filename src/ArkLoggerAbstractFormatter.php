@@ -74,7 +74,7 @@ abstract class ArkLoggerAbstractFormatter
     }
 
     /**
-     * Return the string format log content
+     * Return the string format log content.
      * Log content contains three part: context, body and text tail.
      * Context: Timestamp, Process ID, File Path, etc.
      * Body: Level, Message, Object. (as parameters described)

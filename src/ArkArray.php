@@ -70,7 +70,7 @@ class ArkArray implements Iterator
     /**
      * Return the key of the current element
      * @link https://php.net/manual/en/iterator.key.php
-     * @return string|float|int|bool|null scalar on success, or null on failure.
+     * @return int|null|string scalar on success, or null on failure.
      */
     public function key()
     {
@@ -80,7 +80,7 @@ class ArkArray implements Iterator
     /**
      * Checks if current position is valid
      * @link https://php.net/manual/en/iterator.valid.php
-     * @return bool The return value will be casted to boolean and then evaluated.
+     * @return bool The return value will be cast to boolean and then evaluated.
      * Returns true on success or false on failure.
      */
     public function valid()
@@ -278,7 +278,7 @@ class ArkArray implements Iterator
      */
     public function push($newTailItem)
     {
-        array_push($this->array, $newTailItem);
+        $this->array[] = $newTailItem;
         return $this;
     }
 

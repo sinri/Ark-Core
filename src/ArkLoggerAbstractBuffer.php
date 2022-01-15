@@ -18,7 +18,7 @@ abstract class ArkLoggerAbstractBuffer
      */
     protected $bufferItems;
     /**
-     * @var callable a function to use the full buffer, and the buffer would be cleared when it return true.
+     * @var callable a function to use the full buffer, and the buffer would be cleared when it returns true.
      *  e.g. function(ArkLoggerBufferItem[] $items):bool
      */
     protected $bufferFlusher;

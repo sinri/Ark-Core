@@ -109,14 +109,13 @@ class ArkFileSystemItemEntity
             $entity->parentDirectoryPath = $pathInfo['dirname'];
             $entity->itemExtension = ArkHelper::readTarget($pathInfo, ['extension'], "");
             if (strlen($entity->itemExtension) > 0) $entity->itemExtension = '.' . $entity->itemExtension;
-            $entity->itemFullName = $pathInfo['basename'];
         } else {
             $entity->itemType = self::TYPE_DIR;
             $entity->itemName = $pathInfo['filename'];
             $entity->parentDirectoryPath = $pathInfo['dirname'];
             $entity->itemExtension = "";
-            $entity->itemFullName = $pathInfo['basename'];
         }
+        $entity->itemFullName = $pathInfo['basename'];
         return $entity;
     }
 

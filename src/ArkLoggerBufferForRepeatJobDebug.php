@@ -27,7 +27,7 @@ class ArkLoggerBufferForRepeatJobDebug extends ArkLoggerAbstractBuffer
     /**
      * ArkLoggerBuffer constructor.9
      * @param callable|null $bufferFlusher if null, same as use defaultFlusher
-     * @param bool $bufferOnly if use tee-like style
+     * @param bool $bufferOnly if you want to use tee-like style
      * @param ArkLogger|null $flushLogger if null use silent logger
      * @param string $ignoreLevel
      */

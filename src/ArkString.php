@@ -18,7 +18,7 @@ class ArkString
     }
 
     /**
-     * Generate a single-byte string from a number
+     * Generate a single-byte string from a number.
      * Returns a one-character string containing the character specified by interpreting bytevalue as an unsigned integer.
      * This can be used to create a one-character string in a single-byte encoding such as ASCII, ISO-8859, or Windows 1252, by passing the position of a desired character in the encoding's mapping table. However, note that this function is not aware of any string encoding, and in particular cannot be passed a Unicode code point value to generate a string in a multibyte encoding like UTF-8 or UTF-16.
      * This function complements ord().
@@ -33,7 +33,10 @@ class ArkString
     /**
      * Convert the first byte of a string to a value between 0 and 255
      * Interprets the binary value of the first byte of string as an unsigned integer between 0 and 255.
-     * If the string is in a single-byte encoding, such as ASCII, ISO-8859, or Windows 1252, this is equivalent to returning the position of a character in the character set's mapping table. However, note that this function is not aware of any string encoding, and in particular will never identify a Unicode code point in a multi-byte encoding such as UTF-8 or UTF-16.
+     * If the string is in a single-byte encoding, such as ASCII, ISO-8859, or Windows 1252,
+     * this is equivalent to returning the position of a character in the character set's mapping table.
+     * However, note that this function is not aware of any string encoding,
+     * and in particular will never identify a Unicode code point in a multibyte encoding such as UTF-8 or UTF-16.
      * This function complements chr().
      * @see https://www.php.net/manual/en/function.ord.php
      * @see http://www.asciitable.com/
@@ -160,7 +163,7 @@ class ArkString
 
     /**
      * Decode a uuencoded string
-     * Note: convert_uudecode() neither accepts the begin nor the end line, which are part of uuencoded files.
+     * Note: convert_uudecode() neither accepts the beginning nor the end line, which are part of uuencoded files.
      * @see https://www.php.net/manual/en/function.convert-uudecode.php
      * @return string
      */
@@ -277,7 +280,9 @@ class ArkString
     /**
      * Convert HTML entities to their corresponding characters
      * html_entity_decode() is the opposite of htmlentities() in that it converts HTML entities in the string to their corresponding characters.
-     * More precisely, this function decodes all the entities (including all numeric entities) that a) are necessarily valid for the chosen document type — i.e., for XML, this function does not decode named entities that might be defined in some DTD — and b) whose character or characters are in the coded character set associated with the chosen encoding and are permitted in the chosen document type. All other entities are left as is.
+     * More precisely, this function decodes all the entities (including all numeric entities) that
+     *  (a) are necessarily valid for the chosen document type — i.e., for XML, this function does not decode named entities that might be defined in some DTD —
+     *  and (b) whose character or characters are in the coded character set associated with the chosen encoding and are permitted in the chosen document type. All other entities are left as is.
      * @see https://www.php.net/manual/en/function.html-entity-decode.php
      * @param int|null $flags A bitmask of one or more of the following flags, which specify how to handle quotes and which document type to use. The default is ENT_COMPAT | ENT_HTML401.
      * @param string|null $encoding
@@ -345,7 +350,7 @@ class ArkString
     }
 
     /**
-     * Convert a 8 bit string to a quoted-printable string
+     * Convert an 8 bit string to a quoted-printable string
      * Returns a quoted printable string created according to » RFC2045, section 6.7.
      * This function is similar to imap_8bit(), except this one does not require the IMAP module to work.
      * @see https://www.php.net/manual/en/function.quoted-printable-encode.php
@@ -434,6 +439,7 @@ class ArkString
      * This particular soundex function is one described by Donald Knuth in "The Art Of Computer Programming, vol. 3: Sorting And Searching", Addison-Wesley (1973), pp. 391-392.
      * @see https://www.php.net/manual/en/function.soundex.php
      * @return string|false Returns the soundex key as a string, or FALSE on failure.
+     * Prior to version 8.0.0, calling the function with an empty string returned false for no particular reason; Otherwise "0000" is returned.
      */
     public function soundex()
     {

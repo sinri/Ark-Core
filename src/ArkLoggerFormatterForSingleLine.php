@@ -8,7 +8,7 @@ class ArkLoggerFormatterForSingleLine extends ArkLoggerAbstractFormatter
 {
 
     /**
-     * Return the string format log content
+     * Return the string format log content.
      * Log content contains three part: context, body and text tail.
      * Context: Timestamp, Process ID, File Path, Level, etc.
      * Body: Message and Object. (as parameters described)
@@ -21,9 +21,9 @@ class ArkLoggerFormatterForSingleLine extends ArkLoggerAbstractFormatter
      */
     public function generateLog(string $level, string $message, array $object = []): string
     {
-        $logHead = $this->getTimeString() . " " . "[{$level}]";
+        $logHead = $this->getTimeString() . " " . "[$level]";
         $this->lastLogBody = $this->getProcessIDString()
-            . "{$message} "
+            . $message . " "
             . "|"
             . json_encode($object, JSON_UNESCAPED_UNICODE);
 

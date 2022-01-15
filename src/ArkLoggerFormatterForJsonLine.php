@@ -8,7 +8,7 @@ class ArkLoggerFormatterForJsonLine extends ArkLoggerAbstractFormatter
 {
 
     /**
-     * Return the string format log content
+     * Return the string format log content.
      * Log content contains three part: context, body and text tail.
      * Context: Timestamp, Process ID, File Path, Level, etc.
      * Body: Message and Object. (as parameters described)
