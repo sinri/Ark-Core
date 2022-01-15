@@ -9,6 +9,13 @@ $logger = new ArkLogger();
 
 ArkHelper::registerErrorHandlerForLogging($logger, E_WARNING | E_ERROR, true);
 
+$f = @fopen("/tmp/no/such/file", "r");
+if ($f) {
+    fclose($f);
+}
+exit(0);
+
+
 class DeathMaker
 {
     function makeDeath()
@@ -22,3 +29,4 @@ class DeathMaker
 }
 
 (new DeathMaker())->makeDeath();
+// (new DeathMaker())->makeDeath();

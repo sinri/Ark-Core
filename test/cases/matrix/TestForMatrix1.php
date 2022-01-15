@@ -30,10 +30,19 @@ class TestForMatrix1 extends TestCase
                 ArkMatrixColumnCriterion::for(1)->lessThan(3)
             )
         );
-        var_dump($subMatrix->getColumnNameList());
-        var_dump($subMatrix->getRawMatrix());
+//        var_dump($subMatrix->getColumnNameList());
+//        var_dump($subMatrix->getRawMatrix());
         $this->assertEquals(1, $subMatrix->getTotalRows());
         $this->assertEquals(1, $subMatrix->getTotalColumns());
         $this->assertEquals(8, $subMatrix->getCell(0, 0));
+
+        $matrix->updateColumn([10, 11, 12], 1);
+        self::assertEquals(11, $matrix->getCell(1, 1));
+
+        $matrix->insertColumn([20, 21, 22], 1, 'c1x');
+        var_dump($matrix->getRawMatrix());
+        self::assertEquals(21, $matrix->getCell(1, 1));
+        self::assertEquals(11, $matrix->getCell(1, 2));
+
     }
 }

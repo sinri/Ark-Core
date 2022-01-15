@@ -421,20 +421,33 @@ class ArkHelper
     {
         return set_error_handler(
             function (int $errNo, string $errStr, string $errFile, int $errLine) use ($takeErrorAsFixed, $logger) {
+                // @since 2.7.22
+                // https://www.php.net/manual/en/language.operators.errorcontrol.php
+                // If a custom error handler function is set with set_error_handler(),
+                // it will still be called even though the diagnostic has been suppressed,
+                // as such the custom error handler should call error_reporting()
+                // and verify that the @ operator was used.
+                // Warning
+                // Prior to PHP 8.0.0, the value of the severity passed to the custom error handler was always 0 if the diagnostic was suppressed.
+                // This is no longer the case as of PHP 8.0.0.
+                if (!(error_reporting() & $errNo)) {
+                    return false; // Silenced
+                }
+
                 $showBackTrace = true;
 
-                if ($errNo === E_WARNING) {
-                    if (false !== strpos($errFile, 'ArkFileCache')) {
-                        if (false !== strpos($errStr, 'No such file or directory')) {
-                            if (
-                                false !== strpos($errStr, 'unlink')
-                                || false !== strpos($errStr, 'file_get_contents')
-                            ) {
-                                $showBackTrace = false;
-                            }
-                        }
-                    }
-                }
+//                if ($errNo === E_WARNING) {
+//                    if (false !== strpos($errFile, 'ArkFileCache')) {
+//                        if (false !== strpos($errStr, 'No such file or directory')) {
+//                            if (
+//                                false !== strpos($errStr, 'unlink')
+//                                || false !== strpos($errStr, 'file_get_contents')
+//                            ) {
+//                                $showBackTrace = false;
+//                            }
+//                        }
+//                    }
+//                }
 
                 $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine, $showBackTrace);
                 return $takeErrorAsFixed;
