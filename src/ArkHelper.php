@@ -412,15 +412,16 @@ class ArkHelper
      * @param ArkLogger $logger
      * @param int $level
      * @param bool $takeErrorAsFixed 如果函数返回 FALSE，标准错误处理处理程序将会继续调用。
+     * @param bool $showBacktrace @since 2.7.23 add this
      * @return callable|null
      * @since 2.7.2
      * @since 2.7.16 Make it more friendly for ArkCache using FILE SYSTEM
      * @since 2.7.18 Fix bug in 2.7.16 (mistake $errStr for $errFile)
      */
-    public static function registerErrorHandlerForLogging(ArkLogger $logger, $level = E_ALL | E_STRICT, $takeErrorAsFixed = false)
+    public static function registerErrorHandlerForLogging(ArkLogger $logger, $level = E_ALL | E_STRICT, bool $takeErrorAsFixed = false, bool $showBacktrace = true)
     {
         return set_error_handler(
-            function (int $errNo, string $errStr, string $errFile, int $errLine) use ($takeErrorAsFixed, $logger) {
+            function (int $errNo, string $errStr, string $errFile, int $errLine) use ($showBacktrace, $takeErrorAsFixed, $logger) {
                 // @since 2.7.22
                 // https://www.php.net/manual/en/language.operators.errorcontrol.php
                 // If a custom error handler function is set with set_error_handler(),
@@ -434,7 +435,7 @@ class ArkHelper
                     return false; // Silenced
                 }
 
-                $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine);
+                $logger->logErrorInHandler($errNo, $errStr, $errFile, $errLine, $showBacktrace);
                 return $takeErrorAsFixed;
             },
             $level
